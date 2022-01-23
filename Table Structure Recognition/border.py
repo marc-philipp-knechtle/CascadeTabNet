@@ -40,7 +40,8 @@ def border(table, image):
             if cell_box is None:
                 continue
             # to visualize the detected text areas
-            cv2.rectangle(imag, (cell_box[0] + box[0], cell_box[1] + box[1]), (cell_box[2] + box[0], cell_box[3] + box[1]),
+            cv2.rectangle(imag, (cell_box[0] + box[0], cell_box[1] + box[1]),
+                          (cell_box[2] + box[0], cell_box[3] + box[1]),
                           (255, 0, 0), 2)
             cell = etree.Element("cell")
             end_col, end_row, start_col, start_row = span(box, x, y)
