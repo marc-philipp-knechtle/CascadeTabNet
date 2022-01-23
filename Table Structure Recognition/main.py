@@ -15,7 +15,7 @@ CASCADE_TAB_NET_REPO_LOCATION: str = SCRIPTS_LOCATION + "/CascadeTabNet"
 VISUALISATION_LOCATION: str = "/home/makn/Downloads/sample-tables/ba_test_tables"
 
 # To Do
-image_path = '/home/makn/Downloads/sample-tables/invoice.jpg'
+IMAGE_PATH: str = '/home/makn/Downloads/sample-tables/invoice.jpg'
 xmlPath = '/home/makn/Downloads/sample-xml/'
 
 config_fname = CASCADE_TAB_NET_REPO_LOCATION + "/Config/cascade_mask_rcnn_hrnetv2p_w32_20e.py"
@@ -24,10 +24,10 @@ checkpoint_file = SCRIPTS_LOCATION + "/epoch_36.pth"
 model = init_detector(config_fname, checkpoint_file)
 
 
-def process_image(image_here):
-    result = inference_detector(model, image_here)
+def process_image(image_path: str):
+    result = inference_detector(model, image_path)
     # result border?!?
-    res_border: list = extract_border(result)
+    result_border: list = extract_border(result)
     # result borderless ?!?
     result_borderless: list = extract_borderless(result)
     # result cell ?!?
@@ -35,21 +35,38 @@ def process_image(image_here):
     root: etree.Element = etree.Element("document")
 
     # if border tables detected
-    if len(res_border) != 0:
-        # call border script for each table in image
-        for res in res_border:
-            try:
-                root.append(border(res, cv2.imread(image_here)))
-            except:
-                pass
+    if len(result_border) != 0:
+        root = handle_border(root, result_border, image_path)
+
     if len(result_borderless) != 0:
         if len(res_cell) != 0:
-            for no, res in enumerate(result_borderless):
-                root.append(borderless(res, cv2.imread(image_here), res_cell))
-    myfile = open(xmlPath + image_here.split('/')[-1][:-3] + 'xml', "w")
+            root = handle_borderless_with_cells(result_borderless, root, res_cell, image_path)
+
+    write_to_file(image_path, root)
+
+
+def write_to_file(image_path: str, root: etree.Element):
+    myfile = open(xmlPath + image_path.split('/')[-1][:-3] + 'xml', "w")
     myfile.write('<?xml version="1.0" encoding="UTF-8"?>\n')
     myfile.write(etree.tostring(root, pretty_print=True, encoding="unicode"))
     myfile.close()
+
+
+def handle_border(root: etree.Element, result_border: list, image_path: str) -> etree.Element:
+    # call border script for each table in image
+    for res in result_border:
+        try:
+            root.append(border(res, cv2.imread(image_path)))
+        except:
+            pass
+    return root
+
+
+def handle_borderless_with_cells(result_borderless: list, root: etree.Element, res_cell: list,
+                                 image_path: str) -> etree.Element:
+    for no, res in enumerate(result_borderless):
+        root.append(borderless(res, cv2.imread(image_path), res_cell))
+    return root
 
 
 def extract_border(result) -> list:
@@ -92,9 +109,13 @@ def convert_file(filepath: str) -> str:
         return filepath
 
 
-if __name__ == "__main__":
+def main():
     # List of images in the image_path
-    imgs = glob.glob(image_path)
-    for image in imgs:
-        image = convert_file(image)
-        process_image(image)
+    imgs = glob.glob(IMAGE_PATH)
+    for image_path in imgs:
+        image_path = convert_file(image_path)
+        process_image(image_path)
+
+
+if __name__ == "__main__":
+    main()
