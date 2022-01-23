@@ -4,8 +4,8 @@ from Functions.borderFunc import extract_table
 from lxml import etree
 
 
-## Input : roi of one cell
-## Output : bounding box for the text in that cell
+# Input : roi of one cell
+# Output : bounding box for the text in that cell
 def extractTextBless(img):
     return_arr = []
     h, w = img.shape[0:2]
@@ -31,8 +31,8 @@ def extractTextBless(img):
     return return_arr
 
 
-## Input : Roi of Table , Orignal Image, Cells Detected
-## Output : Returns XML element which has contains bounding box of textchunks
+# Input : Roi of Table , Orignal Image, Cells Detected
+# Output : Returns XML element which has contains bounding box of textchunks
 def borderless(table, image, res_cells):
     cells = []
     x_lines = []
