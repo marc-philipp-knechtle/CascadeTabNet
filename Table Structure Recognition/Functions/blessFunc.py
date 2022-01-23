@@ -6,7 +6,7 @@ from lxml import etree
 
 # Input : roi of one cell
 # Output : bounding box for the text in that cell
-def extractTextBless(img):
+def extract_text_bless(img):
     return_arr = []
     h, w = img.shape[0:2]
     base_size = h + 14, w + 14, 3
@@ -21,7 +21,7 @@ def extractTextBless(img):
     dilation = cv2.dilate(thresh1, rect_kernel, iterations=2)
     # cv2_imshow(dilation)
     contours, hierarchy = cv2.findContours(dilation, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-    for cnt in (contours):
+    for cnt in contours:
         if cv2.contourArea(cnt) < 20:
             continue
         x, y, w, h = cv2.boundingRect(cnt)
@@ -54,7 +54,7 @@ def borderless(table, image, res_cells):
         if i == 0:
             last = cell[1]
             temp = cell[3]
-        elif (cell[1] < last + 15 and cell[1] > last - 15) or (cell[3] < temp + 15 and cell[3] > temp - 15):
+        elif (last + 15 > cell[1] > last - 15) or (temp + 15 > cell[3] > temp - 15):
             if cell[3] > temp:
                 temp = cell[3]
         else:
@@ -92,7 +92,7 @@ def borderless(table, image, res_cells):
         for no, r in enumerate(r1):
             if prevr is not None:
                 # print(r[0],prevr[0])
-                if (r[0] <= prevr[0] + 5 and r[0] >= prevr[0] - 5) or (r[2] <= prevr[2] + 5 and r[2] >= prevr[2] - 5):
+                if (prevr[0] + 5 >= r[0] >= prevr[0] - 5) or (prevr[2] + 5 >= r[2] >= prevr[2] - 5):
                     if r[4] < prevr[4]:
                         r1.pop(no)
                     else:
@@ -119,12 +119,11 @@ def borderless(table, image, res_cells):
             if r[3] > lasty[n][1]:
                 lasty[n][1] = r[3]
     # print("last y:",lasty)
-    row = []
-    row.append(table[1])
+    row = [table[1]]
     prev = None
     pr = None
     for x in range(len(lasty) - 1):
-        if x == 0 and prev == None:
+        if x == 0 and prev is None:
             prev = lasty[x]
         else:
             if pr is not None:
@@ -212,7 +211,7 @@ def borderless(table, image, res_cells):
     cellBoxes = []
     img4 = image.copy()
     for box in final:
-        cellBox = extractTextBless(image[box[1]:box[3], box[0]:box[4]])
+        cellBox = extract_text_bless(image[box[1]:box[3], box[0]:box[4]])
         for cell in cellBox:
             cellBoxes.append([box[0] + cell[0], box[1] + cell[1], cell[2], cell[3]])
             cv2.rectangle(img4, (box[0] + cell[0], box[1] + cell[1]),
