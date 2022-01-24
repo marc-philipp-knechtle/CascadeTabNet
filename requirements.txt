@@ -1,0 +1,4 @@
+# This is a supplementary requirements file created in a fork.
+# The requirements here may not be sufficient to run the detection proposed for this Model.
+
+loguru

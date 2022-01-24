@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 import glob
+import json
 import os
+import pprint
 import sys
 
 import cv2
@@ -12,6 +14,8 @@ from pdf2image import convert_from_path
 from Functions.blessFunc import borderless
 from border import border
 from docrecjson.elements import Document
+
+from PIL import Image
 
 SCRIPTS_LOCATION: str = "/home/makn/workspace-uni/CascadeTabNetTests"
 CASCADE_TAB_NET_REPO_LOCATION: str = SCRIPTS_LOCATION + "/CascadeTabNet"
@@ -55,22 +59,19 @@ def process_image(image_path: str):
     result_borderless: list = extract_borderless(result)
     # result cell ?!?
     res_cell: list = extract_cell(result)
-    root: etree.Element = etree.Element("document")
 
-    # if border tables detected
-    if len(result_border) != 0:
-        root = handle_border(root, result_border, image_path)
 
-    if len(result_borderless) != 0:
-        if len(res_cell) != 0:
-            root = handle_borderless_with_cells(result_borderless, root, res_cell, image_path)
 
+    # Polygon
+
+
+    image: Image = Image.open(image_path)
     # write_to_file(image_path, root)
-    logger.info("Here begins the creation of shared-file-format json.")
-    doc: Document = Document(version="cascade-tab-net", filename="invoice.jgp", original_image_size=(1190, 1683),
+    logger.info("Create json for [{}]", image_path)
+    doc: Document = Document(version="cascade-tab-net", filename=os.path.basename(image_path),
+                             original_image_size=(image.width, image.height),
                              content=[])
-    logger.info(doc.to_json())
-
+    logger.info("Created document from shared-file-format: \n{}", str(doc))
 
 def handle_border(root: etree.Element, result_border: list, image_path: str) -> etree.Element:
     # call border script for each table in image
@@ -123,12 +124,18 @@ def extract_cell(result) -> list:
         result: inference_detector result
 
     Returns: the array of detected cells. Each array describes a cell bounding box.
-    the two coordinates of the array are the top right and bottom left coordinates of the bounding box.
+    The arrays consists normally of five elements
+    1. top left x coordinate
+    2. top left y coordinate
+    3. bottom right x coordinate
+    4. bottom right y coordinate
+    5. threshold value
     """
     result_cell = []
     # for cells
     for r in result[0][1]:
         if r[4] > .85:
+            # to be able to append the threshold as integer value
             r[4] = r[4] * 100
             result_cell.append(r.astype(int))
     return result_cell
