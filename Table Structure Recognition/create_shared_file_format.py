@@ -3,15 +3,12 @@ import glob
 import os
 import sys
 
-import cv2
-import lxml.etree as etree
 from PIL import Image
 from loguru import logger
 from mmdet.apis import inference_detector, init_detector
 from pdf2image import convert_from_path
 
-from Functions.blessFunc import borderless
-from border import border
+from docrecjson.commontypes import Point
 from docrecjson.elements import Document
 
 SCRIPTS_LOCATION: str = "/home/makn/workspace-uni/CascadeTabNetTests"
@@ -55,7 +52,7 @@ def process_image(image_path: str):
     # result borderless ?!?
     result_borderless: list = extract_borderless(result)
     # result cell ?!?
-    res_cell: list = extract_cell(result)
+    results_cell_detection: list = extract_cell(result)
 
     # Polygon
 
@@ -68,22 +65,8 @@ def process_image(image_path: str):
     logger.info("Created document from shared-file-format: \n{}", str(doc))
 
 
-def handle_border(root: etree.Element, result_border: list, image_path: str) -> etree.Element:
-    # call border script for each table in image
-    for res in result_border:
-        try:
-            root.append(border(res, cv2.imread(image_path)))
-        except:
-            pass
-    return root
-
-
-def handle_borderless_with_cells(result_borderless: list, root: etree.Element, res_cell: list,
-                                 image_path: str) -> etree.Element:
-    for no, result in enumerate(result_borderless):
-        # todo create here your shared file format
-        root.append(borderless(result, cv2.imread(image_path), res_cell))
-    return root
+def create_square(top_left: Point, bottom_right: Point):
+    pass
 
 
 def extract_border(result) -> list:
