@@ -31,9 +31,18 @@ def extract_text_bless(img):
     return return_arr
 
 
-# Input : Roi of Table , Orignal Image, Cells Detected
-# Output : Returns XML element which has contains bounding box of textchunks
 def borderless(table, image, res_cells):
+    """
+    Input : Roi of Table , Orignal Image, Cells Detected
+    Output : Returns XML element which has contains bounding box of textchunks
+    Args:
+        table:
+        image:
+        res_cells:
+
+    Returns:
+
+    """
     cells = []
     x_lines = []
     y_lines = []
