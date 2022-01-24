@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 import glob
-import json
 import os
-import pprint
 import sys
 
 import cv2
 import lxml.etree as etree
+from PIL import Image
 from loguru import logger
 from mmdet.apis import inference_detector, init_detector
 from pdf2image import convert_from_path
@@ -14,8 +13,6 @@ from pdf2image import convert_from_path
 from Functions.blessFunc import borderless
 from border import border
 from docrecjson.elements import Document
-
-from PIL import Image
 
 SCRIPTS_LOCATION: str = "/home/makn/workspace-uni/CascadeTabNetTests"
 CASCADE_TAB_NET_REPO_LOCATION: str = SCRIPTS_LOCATION + "/CascadeTabNet"
@@ -60,10 +57,7 @@ def process_image(image_path: str):
     # result cell ?!?
     res_cell: list = extract_cell(result)
 
-
-
     # Polygon
-
 
     image: Image = Image.open(image_path)
     # write_to_file(image_path, root)
@@ -72,6 +66,7 @@ def process_image(image_path: str):
                              original_image_size=(image.width, image.height),
                              content=[])
     logger.info("Created document from shared-file-format: \n{}", str(doc))
+
 
 def handle_border(root: etree.Element, result_border: list, image_path: str) -> etree.Element:
     # call border script for each table in image
