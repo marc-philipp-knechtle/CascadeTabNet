@@ -2,3 +2,4 @@
 # The requirements here may not be sufficient to run the detection proposed for this Model.
 
 loguru
+Pillow
