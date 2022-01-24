@@ -16,7 +16,7 @@ CASCADE_TAB_NET_REPO_LOCATION: str = SCRIPTS_LOCATION + "/CascadeTabNet"
 VISUALISATION_LOCATION: str = "/home/makn/Downloads/sample-tables/ba_test_tables"
 
 # Todo these as arguments with argparse
-IMAGE_PATH: str = '/home/makn/Downloads/sample-tables/invoice.jpg'
+IMAGE_PATH: str = '/home/makn/Downloads/sample-tables/2.9.scan.png'
 xmlPath = '/home/makn/Downloads/sample-xml/'
 
 config_fname = CASCADE_TAB_NET_REPO_LOCATION + "/Config/cascade_mask_rcnn_hrnetv2p_w32_20e.py"
@@ -52,7 +52,9 @@ def process_image(image_path: str):
     # result borderless ?!?
     result_borderless: list = extract_borderless(result)
     # result cell ?!?
-    results_cell_detection: list = extract_cell(result)
+    result_cells_detection: list = extract_cell(result)
+
+    result_cells_bounding_boxes: list = create_bounding_boxes(result_cells_detection)
 
     # Polygon
 
@@ -65,8 +67,34 @@ def process_image(image_path: str):
     logger.info("Created document from shared-file-format: \n{}", str(doc))
 
 
-def create_square(top_left: Point, bottom_right: Point):
-    pass
+def create_bounding_boxes(cells: list) -> list:
+    bounding_box_cells: list = []
+    for cell in cells:
+        bounding_box_cells.append(handle_bounding_box_cell(cell))
+    return bounding_box_cells
+
+
+def handle_bounding_box_cell(cell: list) -> list:
+    if len(cell) != 5:
+        raise ValueError("The cell array didn't fulfill the expected length. Please check whether [" + str(
+            cell) + "] matches the expected requirements.")
+    return create_square((cell[0], cell[1]), (cell[2], cell[3]))
+
+
+def create_square(top_left: Point, bottom_right: Point) -> list:
+    """
+    Args:
+        top_left: top left Point
+        bottom_right: bottom right Point
+    Returns: a new Point list with top_right and bottom left computed such that a bounding box can be computed.
+    """
+    top_left_x, top_left_y = top_left
+    bottom_right_x, bottom_right_y = bottom_right
+    box_width = bottom_right_x - top_left_x
+    top_right = (top_left_x + box_width, top_left_y)
+    bottom_left = (bottom_right_x - box_width, bottom_right_y)
+    box_cornerstones: list = [top_left, bottom_right, top_right, bottom_left]
+    return box_cornerstones
 
 
 def extract_border(result) -> list:
