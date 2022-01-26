@@ -2,6 +2,7 @@
 import glob
 import os
 import sys
+from typing import List
 
 from PIL import Image
 from loguru import logger
@@ -9,7 +10,7 @@ from mmdet.apis import inference_detector, init_detector
 from pdf2image import convert_from_path
 
 from docrecjson.commontypes import Point
-from docrecjson.elements import Document
+from docrecjson.elements import Document, PolygonRegion
 
 SCRIPTS_LOCATION: str = "/home/makn/workspace-uni/CascadeTabNetTests"
 CASCADE_TAB_NET_REPO_LOCATION: str = SCRIPTS_LOCATION + "/CascadeTabNet"
@@ -33,55 +34,53 @@ logger.add("failures.log", level='ERROR', rotation="10 MB")
 
 def process_image(image_path: str):
     """
-
-    Args:
-        image_path:
-
-    Returns:
-
-    """
-    """
     from inference_detector documentation:
         If imgs is a str, a generator will be returned, otherwise return the
         detection results directly.
     -> this version should return a generator
     """
     result = inference_detector(model, image_path)
+
+    # These may be included in the shared-file-format results, but I'm unsure whether this is applicable.
     # result border?!?
-    result_border: list = extract_border(result)
+    # result_border: list = extract_border(result)
     # result borderless ?!?
-    result_borderless: list = extract_borderless(result)
+    # result_borderless: list = extract_borderless(result)
     # result cell ?!?
     result_cells_detection: list = extract_cell(result)
 
-    result_cells_bounding_boxes: list = create_bounding_boxes(result_cells_detection)
+    result_cells_bounding_boxes: List[List[Point]] = create_bounding_boxes(result_cells_detection)
 
-    # Polygon
+    cell_polygons: list = []
+    cell_counter: int = 0
+    # Polygon creation
+    for cell in result_cells_bounding_boxes:
+        cell_polygons.append(PolygonRegion(oid=cell_counter, polygon=cell, region_type="unknown"))
 
     image: Image = Image.open(image_path)
     # write_to_file(image_path, root)
     logger.info("Create json for [{}]", image_path)
     doc: Document = Document(version="cascade-tab-net", filename=os.path.basename(image_path),
                              original_image_size=(image.width, image.height),
-                             content=[])
-    logger.info("Created document from shared-file-format: \n{}", str(doc))
+                             content=cell_polygons)
+    logger.info("Created document from shared-file-format: \n{}", str(doc.to_json()))
 
 
-def create_bounding_boxes(cells: list) -> list:
+def create_bounding_boxes(cells: list) -> List[List[Point]]:
     bounding_box_cells: list = []
     for cell in cells:
         bounding_box_cells.append(handle_bounding_box_cell(cell))
     return bounding_box_cells
 
 
-def handle_bounding_box_cell(cell: list) -> list:
+def handle_bounding_box_cell(cell: list) -> List[Point]:
     if len(cell) != 5:
         raise ValueError("The cell array didn't fulfill the expected length. Please check whether [" + str(
             cell) + "] matches the expected requirements.")
     return create_square((cell[0], cell[1]), (cell[2], cell[3]))
 
 
-def create_square(top_left: Point, bottom_right: Point) -> list:
+def create_square(top_left: Point, bottom_right: Point) -> List[Point]:
     """
     Args:
         top_left: top left Point
@@ -111,7 +110,6 @@ def extract_borderless(result) -> list:
     extracts borderless masks from result
     Args:
         result:
-
     Returns: a list of the borderless tables. Each array describes a borderless table bounding box.
     the two coordinates in the array are the top right and bottom left coordinates of the bounding box.
     """
@@ -125,10 +123,8 @@ def extract_borderless(result) -> list:
 
 def extract_cell(result) -> list:
     """
-
     Args:
         result: inference_detector result
-
     Returns: the array of detected cells. Each array describes a cell bounding box.
     The arrays consists normally of five elements
     1. top left x coordinate
@@ -166,6 +162,8 @@ def main():
         logger.info("Received image: [{}]", image_path)
         image_path = convert_file(image_path)
         process_image(image_path)
+
+    # todo write this document in mongodb together with the image etc.
 
 
 if __name__ == "__main__":
