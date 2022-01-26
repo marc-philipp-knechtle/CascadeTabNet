@@ -1,7 +1,8 @@
 #!/usr/bin/env python
-import glob
+import argparse
 import os
 import sys
+import time
 from typing import List
 
 from PIL import Image
@@ -12,19 +13,6 @@ from pdf2image import convert_from_path
 from docrecjson.commontypes import Point
 from docrecjson.elements import Document, PolygonRegion
 
-SCRIPTS_LOCATION: str = "/home/makn/workspace-uni/CascadeTabNetTests"
-CASCADE_TAB_NET_REPO_LOCATION: str = SCRIPTS_LOCATION + "/CascadeTabNet"
-VISUALISATION_LOCATION: str = "/home/makn/Downloads/sample-tables/ba_test_tables"
-
-# Todo these as arguments with argparse
-IMAGE_PATH: str = '/home/makn/Downloads/sample-tables/2.9.scan.png'
-xmlPath = '/home/makn/Downloads/sample-xml/'
-
-config_fname = CASCADE_TAB_NET_REPO_LOCATION + "/Config/cascade_mask_rcnn_hrnetv2p_w32_20e.py"
-checkpoint_file = SCRIPTS_LOCATION + "/epoch_36.pth"
-
-model = init_detector(config_fname, checkpoint_file)
-
 # remove the default loguru logger
 logger.remove()
 # add new custom loggers
@@ -32,14 +20,16 @@ logger.add(sys.stdout, level='INFO')
 logger.add("failures.log", level='ERROR', rotation="10 MB")
 
 
-def process_image(image_path: str):
+def process_image(image_path: str, config_fname: str, checkpoint_file: str):
     """
     from inference_detector documentation:
         If imgs is a str, a generator will be returned, otherwise return the
         detection results directly.
     -> this version should return a generator
     """
+    model = init_detector(config_fname, checkpoint_file)
     result = inference_detector(model, image_path)
+    # result = None
 
     # These may be included in the shared-file-format results, but I'm unsure whether this is applicable.
     # result border?!?
@@ -64,6 +54,8 @@ def process_image(image_path: str):
                              original_image_size=(image.width, image.height),
                              content=cell_polygons)
     logger.info("Created document from shared-file-format: \n{}", str(doc.to_json()))
+    logger.info("Finished shared-file-format creation on: \n{}", image_path)
+    logger.info("Waiting for new files...")
 
 
 def create_bounding_boxes(cells: list) -> List[List[Point]]:
@@ -144,27 +136,76 @@ def extract_cell(result) -> list:
 
 
 def convert_file(filepath: str) -> str:
+    """
+    Args:
+        filepath: file to check and convert if necessary
+    Returns: image file if pdf was specified
+    """
     filename, file_extension = os.path.splitext(os.path.basename(filepath))
+    dir: str = os.path.dirname(filepath)
     if ".pdf" in file_extension:
         pages = convert_from_path(filepath, 500)
         for page in pages:
-            page.save(VISUALISATION_LOCATION + "/" + filename + ".png", "PNG")
+            page.save(dir + "/" + filename + ".png", "PNG")
         os.remove(filepath)
-        return VISUALISATION_LOCATION + "/" + filename + ".png"
+        return dir + "/" + filename + ".png"
     else:
         return filepath
 
 
-def main():
-    # List of images in the image_path
-    imgs = glob.glob(IMAGE_PATH)
-    for image_path in imgs:
-        logger.info("Received image: [{}]", image_path)
-        image_path = convert_file(image_path)
-        process_image(image_path)
+def parse_arguments() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-c",
+                        "--checkpoint",
+                        help="Please add the path to your downloaded, pretrained mode."
+                             "The default assumes that it's currently in your working directory.",
+                        default="epoch_36.pth",
+                        type=str)
+    parser.add_argument("-co", "--config",
+                        help="Please add the path to your config file. This file resides in the CascadeTabNet/Config"
+                             "directory.",
+                        default=7, type=str)
+    parser.add_argument("-e", "--extraction", help="Folder to monitor for new incoming extraction files.",
+                        type=str)
+    parser.add_argument("-ed", "--extractionDetected",
+                        help="Folder to move extracted, successfully detected files to.",
+                        type=str)
+    return parser.parse_args()
+
+
+def handle_duplicate_files(filepath: str, new_folder_location: str):
+    counter: int = 1
+    filename, file_extension = os.path.splitext(os.path.basename(filepath))
+    while os.path.isfile(os.path.join(new_folder_location, filename + " (" + str(counter) + ")" + file_extension)):
+        counter += 1
+    os.rename(filepath, os.path.join(new_folder_location, filename + " (" + str(counter) + ")" + file_extension))
+
+
+def move_to_folder(filepath: str, new_folder_location: str):
+    # todo maybe remove os.path.join... because filepath is already path
+    if not os.path.isfile(filepath):
+        os.rename(filepath, new_folder_location)
+    else:
+        handle_duplicate_files(filepath, new_folder_location)
+
+
+def main(checkpoint_filepath: str, config_filepath: str, extraction_filepath: str, extraction_detected_filepath: str):
+    logger.info("Waiting for new files...")
+    try:
+        while True:
+            for filename in os.listdir(extraction_filepath):
+                filepath = extraction_filepath + "/" + filename
+                logger.info("Received image: [{}]", filepath)
+                image_path: str = convert_file(filepath)
+                process_image(image_path, config_filepath, checkpoint_filepath)
+                move_to_folder(image_path, extraction_detected_filepath)
+            time.sleep(2)
+    except KeyboardInterrupt:
+        exit(0)
 
     # todo write this document in mongodb together with the image etc.
 
 
 if __name__ == "__main__":
-    main()
+    args: argparse.Namespace = parse_arguments()
+    main(args.checkpoint, args.config, args.extraction, args.extractionDetected)
