@@ -17,6 +17,7 @@ from docrecjson.elements import Document, PolygonRegion
 logger.remove()
 # add new custom loggers
 logger.add(sys.stdout, level='INFO')
+logger.add("info.log", level='INFO', rotation="10 MB")
 logger.add("failures.log", level='ERROR', rotation="10 MB")
 
 
