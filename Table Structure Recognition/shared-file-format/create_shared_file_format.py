@@ -10,6 +10,7 @@ from loguru import logger
 from mmdet.apis import inference_detector, init_detector
 from pdf2image import convert_from_path
 
+from database.db import Connection
 from docrecjson.commontypes import Point
 from docrecjson.elements import Document, PolygonRegion
 
@@ -20,8 +21,10 @@ logger.add(sys.stdout, level='INFO')
 logger.add("info.log", level='INFO', rotation="10 MB")
 logger.add("failures.log", level='ERROR', rotation="10 MB")
 
+__db = Connection()
 
-def process_image(image_path: str, config_fname: str, checkpoint_file: str):
+
+def process_image(image_path: str, config_fname: str, checkpoint_file: str) -> Document:
     """
     from inference_detector documentation:
         If imgs is a str, a generator will be returned, otherwise return the
@@ -57,6 +60,8 @@ def process_image(image_path: str, config_fname: str, checkpoint_file: str):
     logger.info("Created document from shared-file-format: \n{}", str(doc.to_json()))
     logger.info("Finished shared-file-format creation on: \n{}", image_path)
     logger.info("Waiting for new files...")
+
+    return doc
 
 
 def create_bounding_boxes(cells: list) -> List[List[Point]]:
@@ -198,13 +203,12 @@ def main(checkpoint_filepath: str, config_filepath: str, extraction_filepath: st
                 filepath = extraction_filepath + "/" + filename
                 logger.info("Received image: [{}]", filepath)
                 image_path: str = convert_file(filepath)
-                process_image(image_path, config_filepath, checkpoint_filepath)
+                extracted_image: Document = process_image(image_path, config_filepath, checkpoint_filepath)
+                __db.get_collection().insert_one(extracted_image.to_dict())
                 move_to_folder(image_path, extraction_detected_filepath)
             time.sleep(2)
     except KeyboardInterrupt:
         exit(0)
-
-    # todo write this document in mongodb together with the image etc.
 
 
 if __name__ == "__main__":
