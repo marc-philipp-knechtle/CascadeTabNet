@@ -180,6 +180,17 @@ def parse_arguments() -> argparse.Namespace:
 
 
 def handle_duplicate_files(filepath: str, new_folder_location: str):
+    """
+    handles duplicate files + adds e.g. filenameXYZ(1).jpg counter behind it.
+    And SAVES IT!
+
+    Args:
+        filepath: filepath which was tried to be written
+        new_folder_location: the folder where the file should be in
+
+    Returns: nothing
+
+    """
     counter: int = 1
     filename, file_extension = os.path.splitext(os.path.basename(filepath))
     while os.path.isfile(os.path.join(new_folder_location, filename + " (" + str(counter) + ")" + file_extension)):
