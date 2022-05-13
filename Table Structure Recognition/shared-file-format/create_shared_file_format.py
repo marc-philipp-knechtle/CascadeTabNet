@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import argparse
+import json
 import os
 import sys
 import time
@@ -176,6 +177,11 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument("-ed", "--extractionDetected",
                         help="Folder to move extracted, successfully detected files to.",
                         type=str)
+    parser.add_argument("-ej", "--extractionJson",
+                        help="Specify a folder to save the extracted json Files into. "
+                             "Leave empty, if you don't want to save any shared-file-format json files",
+                        type=str, default="")
+
     return parser.parse_args()
 
 
@@ -206,6 +212,11 @@ def move_to_folder(filepath: str, new_folder_location: str):
         handle_duplicate_files(filepath, new_folder_location)
 
 
+def save_as_json(shared_file_document: Document, filename: str):
+    with open(filename + ".json", 'w') as json_file:
+        json.dump(shared_file_document.to_dict(), json_file)
+
+
 def main(checkpoint_filepath: str, config_filepath: str, extraction_filepath: str, extraction_detected_filepath: str):
     logger.info("Waiting for new files...")
     try:
@@ -217,6 +228,7 @@ def main(checkpoint_filepath: str, config_filepath: str, extraction_filepath: st
                 extracted_image: Document = process_image(image_path, config_filepath, checkpoint_filepath)
                 __db.get_collection().insert_one(extracted_image.to_dict())
                 move_to_folder(image_path, extraction_detected_filepath)
+                save_as_json(extracted_image, filename)
             time.sleep(2)
     except KeyboardInterrupt:
         exit(0)
