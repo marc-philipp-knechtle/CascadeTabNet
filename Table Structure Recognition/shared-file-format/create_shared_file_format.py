@@ -217,7 +217,8 @@ def save_as_json(shared_file_document: Document, filename: str):
         json.dump(shared_file_document.to_dict(), json_file)
 
 
-def main(checkpoint_filepath: str, config_filepath: str, extraction_filepath: str, extraction_detected_filepath: str):
+def main(checkpoint_filepath: str, config_filepath: str, extraction_filepath: str, extraction_detected_filepath: str,
+         extraction_json_filepath: str):
     logger.info("Waiting for new files...")
     try:
         while True:
@@ -228,7 +229,7 @@ def main(checkpoint_filepath: str, config_filepath: str, extraction_filepath: st
                 extracted_image: Document = process_image(image_path, config_filepath, checkpoint_filepath)
                 __db.get_collection().insert_one(extracted_image.to_dict())
                 move_to_folder(image_path, extraction_detected_filepath)
-                save_as_json(extracted_image, filename)
+                save_as_json(extracted_image, os.path.join(extraction_json_filepath, filename))
             time.sleep(2)
     except KeyboardInterrupt:
         exit(0)
@@ -236,4 +237,4 @@ def main(checkpoint_filepath: str, config_filepath: str, extraction_filepath: st
 
 if __name__ == "__main__":
     args: argparse.Namespace = parse_arguments()
-    main(args.checkpoint, args.config, args.extraction, args.extractionDetected)
+    main(args.checkpoint, args.config, args.extraction, args.extractionDetected, args.extractionJson)
