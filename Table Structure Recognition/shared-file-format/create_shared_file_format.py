@@ -51,6 +51,7 @@ def process_image(image_path: str, config_fname: str, checkpoint_file: str) -> D
     # Polygon creation
     for cell in result_cells_bounding_boxes:
         cell_polygons.append(PolygonRegion(oid=cell_counter, polygon=cell, region_type="unknown"))
+        cell_counter += 1
 
     image: Image = Image.open(image_path)
     # write_to_file(image_path, root)
@@ -238,3 +239,5 @@ def main(checkpoint_filepath: str, config_filepath: str, extraction_filepath: st
 if __name__ == "__main__":
     args: argparse.Namespace = parse_arguments()
     main(args.checkpoint, args.config, args.extraction, args.extractionDetected, args.extractionJson)
+
+    # todo add meta value describinh this conversion!
