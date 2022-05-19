@@ -53,7 +53,7 @@ def process_image(image_path: str, config_fname: str, checkpoint_file: str) -> D
         # the cell array has a weird format which produces conflicts with other applications in downstream tasks
         # they produce a cross-like shape for detection
         # this is the reason the cell list is reordered properly
-        cell_ordered: list = [cell[0], cell[2], cell[1], cell[3]]
+        cell_ordered: list = [cell[0], cell[3], cell[2], cell[1]]
         cell_polygons.append(PolygonRegion(oid=cell_counter, polygon=cell_ordered, region_type="unknown"))
         cell_counter += 1
 
