@@ -46,23 +46,21 @@ def process_image(image_path: str, config_fname: str, checkpoint_file: str) -> D
 
     result_cells_bounding_boxes: List[List[Point]] = create_bounding_boxes(result_cells_detection)
 
-    cell_polygons: list = []
-    cell_counter: int = 0
+    image: Image = Image.open(image_path)
+    # write_to_file(image_path, root)
+    logger.info("Create json for [{}]", image_path)
+    doc: Document = Document.empty(filename=os.path.basename(image_path),
+                                   original_image_size=(image.width, image.height))
+    doc.add_metadata({"creator": "CascadeTabNet"})
+
     # Polygon creation
     for cell in result_cells_bounding_boxes:
         # the cell array has a weird format which produces conflicts with other applications in downstream tasks
         # they produce a cross-like shape for detection
         # this is the reason the cell list is reordered properly
         cell_ordered: list = [cell[0], cell[2], cell[1], cell[3]]
-        cell_polygons.append(PolygonRegion(oid=cell_counter, polygon=cell_ordered, region_type="unknown"))
-        cell_counter += 1
+        doc.add_region(area=cell_ordered, region_type="text")
 
-    image: Image = Image.open(image_path)
-    # write_to_file(image_path, root)
-    logger.info("Create json for [{}]", image_path)
-    doc: Document = Document(version="cascade-tab-net", filename=os.path.basename(image_path),
-                             original_image_size=(image.width, image.height),
-                             content=cell_polygons)
     logger.info("Created document from shared-file-format: \n{}", str(doc.to_json()))
     logger.info("Finished shared-file-format creation on: \n{}", image_path)
     logger.info("Waiting for new files...")
@@ -217,9 +215,10 @@ def move_to_folder(filepath: str, new_folder_location: str):
         handle_duplicate_files(filepath, new_folder_location)
 
 
-def save_as_json(shared_file_document: Document, filename: str):
-    with open(filename + ".json", 'w') as json_file:
+def save_as_json(shared_file_document: Document, filepath: str):
+    with open(filepath + ".json", 'w') as json_file:
         json.dump(shared_file_document.to_dict(), json_file)
+        logger.info("Saved json file: " + filepath + ".json")
 
 
 def main(checkpoint_filepath: str, config_filepath: str, extraction_filepath: str, extraction_detected_filepath: str,
@@ -234,7 +233,10 @@ def main(checkpoint_filepath: str, config_filepath: str, extraction_filepath: st
                 extracted_image: Document = process_image(image_path, config_filepath, checkpoint_filepath)
                 __db.get_collection().insert_one(extracted_image.to_dict())
                 move_to_folder(image_path, extraction_detected_filepath)
-                save_as_json(extracted_image, os.path.join(extraction_json_filepath, filename))
+
+                # extract pure filename from this path
+                filename_without_extension = filename.rsplit('.', maxsplit=1)[0]
+                save_as_json(extracted_image, os.path.join(extraction_json_filepath, filename_without_extension))
             time.sleep(2)
     except KeyboardInterrupt:
         exit(0)
