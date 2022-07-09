@@ -63,7 +63,8 @@ def process_image(image_path: str, config_fname: str, checkpoint_file: str) -> D
         cell: Cell = doc.add_cell(cell_ordered, source='prediction')
         cells.append(cell)
 
-    doc.add_table(get_table_coordinates_from_cells(cells), cells, source="prediction")
+    if len(cells) != 0:
+        doc.add_table(get_table_coordinates_from_cells(cells), cells, source="prediction")
 
     logger.info("Created document from shared-file-format: \n{}", str(doc.to_json()))
     logger.info("Finished shared-file-format creation on: \n{}", image_path)
