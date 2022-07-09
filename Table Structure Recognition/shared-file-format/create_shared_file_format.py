@@ -4,7 +4,7 @@ import json
 import os
 import sys
 import time
-from typing import List
+from typing import List, Tuple
 
 from PIL import Image
 from loguru import logger
@@ -13,7 +13,7 @@ from pdf2image import convert_from_path
 
 from database.db import Connection
 from docrecjson.commontypes import Point
-from docrecjson.elements import Document, PolygonRegion
+from docrecjson.elements import Document, PolygonRegion, Cell
 
 # remove the default loguru logger
 logger.remove()
@@ -51,21 +51,82 @@ def process_image(image_path: str, config_fname: str, checkpoint_file: str) -> D
     logger.info("Create json for [{}]", image_path)
     doc: Document = Document.empty(filename=os.path.basename(image_path),
                                    original_image_size=(image.width, image.height))
+    doc.set_source_for_adding("prediction")
     doc.add_creator("CascadeTabNet", "1.0")
 
-    # Polygon creation
+    cells: List[Cell] = []
     for cell in result_cells_bounding_boxes:
         # the cell array has a weird format which produces conflicts with other applications in downstream tasks
         # they produce a cross-like shape for detection
         # this is the reason the cell list is reordered properly
         cell_ordered: list = [cell[0], cell[2], cell[1], cell[3]]
-        doc.add_region(area=cell_ordered, region_type="text")
+        cell: Cell = doc.add_cell(cell_ordered, source='prediction')
+        cells.append(cell)
+
+    doc.add_table(get_table_coordinates_from_cells(cells), cells, source="prediction")
 
     logger.info("Created document from shared-file-format: \n{}", str(doc.to_json()))
     logger.info("Finished shared-file-format creation on: \n{}", image_path)
     logger.info("Waiting for new files...")
 
     return doc
+
+
+def get_table_coordinates_from_cells(cells: List[Cell]) -> list:
+    """
+    Computes the cell bounding box based on the already extracted cells.
+    It just needs to compute the lower left coordinate, as well as the upper right coordinate.
+    The remaining coordinates can be computed with _span_polygon
+    :param cells: all cells in the tables. The cell's bounding box can be accessed via cell.bounding_box.
+                  The single coordinates are in the order as they are returned by _span_polygon.
+                  This is because _span_polygon was already used for the cell bounding box creation.
+    :return: all four rectangle coordinates of the table bounding box
+    """
+    all_x_values = []
+    all_y_values = []
+
+    for cell in cells:
+        for point in cell.bounding_box.polygon:
+            all_x_values.append(point[0])
+            all_y_values.append(point[1])
+
+    # lower left coordinate = min x coordinate + max y coordinate
+    # upper right coordinate = max x coordinate + min y coordinate
+    max_x = max(all_x_values)
+    min_x = min(all_x_values)
+    max_y = max(all_y_values)
+    min_y = min(all_y_values)
+
+    return _span_polygon((min_x, max_y), (max_x, min_y))
+
+
+def _span_polygon(point1: Tuple, point2: Tuple) -> list:
+    """
+    The sci tsr polygon bounding boxes do not have the necessary coordinate structure for the shared-file-format.
+    The coordinates are simply the lower left of the bbox and the upper right of the bbox.
+    But this is sufficient to construct the right square coordinates.
+    It's important that the coordinates are in the right order because the shared-file-format assumes that the last
+    coordinates are connected.
+    :param point1:  lower left coordinate
+    :param point2: upper right coordinate
+    :return: a list of four coordinates. with index:
+        0 = lower left
+        1 = lower right
+        2 = upper right
+        3 = upper left
+    """
+    # written not in a single statement for readability
+    # noinspection PyListCreation
+    polygon_points: list = []
+
+    polygon_points.append(point1)
+    # point2.x, point1.y = lower right
+    polygon_points.append((point2[0], point1[1]))
+    polygon_points.append(point2)
+    # point1.x, point2.y = upper left
+    polygon_points.append((point1[0], point2[1]))
+
+    return polygon_points
 
 
 def create_bounding_boxes(cells: list) -> List[List[Point]]:
