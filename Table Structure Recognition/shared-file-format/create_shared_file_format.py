@@ -51,7 +51,7 @@ def process_image(image_path: str, config_fname: str, checkpoint_file: str) -> D
     logger.info("Create json for [{}]", image_path)
     doc: Document = Document.empty(filename=os.path.basename(image_path),
                                    original_image_size=(image.width, image.height))
-    doc.add_metadata({"creator": "CascadeTabNet"})
+    doc.add_creator("CascadeTabNet", "1.0")
 
     # Polygon creation
     for cell in result_cells_bounding_boxes:
@@ -245,5 +245,3 @@ def main(checkpoint_filepath: str, config_filepath: str, extraction_filepath: st
 if __name__ == "__main__":
     args: argparse.Namespace = parse_arguments()
     main(args.checkpoint, args.config, args.extraction, args.extractionDetected, args.extractionJson)
-
-    # todo add meta value describinh this conversion!
