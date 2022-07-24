@@ -51,6 +51,7 @@ def process_image(image_path: str, config_fname: str, checkpoint_file: str) -> D
     logger.info("Create json for [{}]", image_path)
     doc: Document = Document.empty(filename=os.path.basename(image_path),
                                    original_image_size=(image.width, image.height))
+    doc.new_revision(independent_revision=True, name="CascadeTabNet")
     doc.set_source_for_adding("prediction")
     doc.add_creator("CascadeTabNet", "1.0")
 
