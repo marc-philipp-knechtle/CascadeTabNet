@@ -9,7 +9,7 @@ from pymongo.database import Database
 # Connection defaults
 MONGO_CONNECTION_DEFAULT = "mongodb://localhost:17270/?readPreference=primary&ssl=false"
 COLLECTION_CASCADE_TABNET_DEFAULT = "cascadeTabNet"
-DATABASE_SHARED_FILE_FORMAT_DEFAULT = "shared-file-format"
+DATABASE_SHARED_FILE_FORMAT_DEFAULT = "shared_file_format"
 
 
 class Connection:
