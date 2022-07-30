@@ -191,7 +191,7 @@ def extract_cell(result) -> list:
     Args:
         result: inference_detector result
     Returns: the array of detected cells. Each array describes a cell bounding box.
-    The arrays consists normally of five elements
+    The arrays consist normally of five elements
     1. top left x coordinate
     2. top left y coordinate
     3. bottom right x coordinate
