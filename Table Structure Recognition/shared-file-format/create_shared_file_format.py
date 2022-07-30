@@ -24,6 +24,8 @@ logger.add("failures.log", level='ERROR', rotation="10 MB")
 
 __db = Connection()
 
+THRESHOLD_VALUE_CELL: float = 0.85
+
 
 def process_image(image_path: str, config_fname: str, checkpoint_file: str) -> Document:
     """
@@ -42,6 +44,8 @@ def process_image(image_path: str, config_fname: str, checkpoint_file: str) -> D
     # result borderless ?!?
     # result_borderless: list = extract_borderless(result)
     # result cell ?!?
+
+
     result_cells_detection: list = extract_cell(result)
 
     result_cells_bounding_boxes: List[List[Point]] = create_bounding_boxes(result_cells_detection)
@@ -165,7 +169,7 @@ def extract_border(result) -> list:
     # for border
     res_border: list = []
     for r in result[0][0]:
-        if r[4] > .85:
+        if r[4] > THRESHOLD_VALUE_CELL:
             res_border.append(r[:4].astype(int))
     return res_border
 
@@ -180,7 +184,7 @@ def extract_borderless(result) -> list:
     """
     result_borderless = []
     for r in result[0][2]:
-        if r[4] > .85:
+        if r[4] > THRESHOLD_VALUE_CELL:
             # slices the threshold value of
             result_borderless.append(r[:4].astype(int))
     return result_borderless
@@ -201,7 +205,7 @@ def extract_cell(result) -> list:
     result_cell = []
     # for cells
     for r in result[0][1]:
-        if r[4] > .85:
+        if r[4] > THRESHOLD_VALUE_CELL:
             # to be able to append the threshold as integer value
             r[4] = r[4] * 100
             result_cell.append(r.astype(int))
