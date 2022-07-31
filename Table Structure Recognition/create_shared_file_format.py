@@ -6,12 +6,17 @@ import sys
 import time
 from typing import List, Tuple
 
+import cv2
+
+from border import handle_bordered_table
+from borderless import handle_borderless_table
+
 from PIL import Image
 from loguru import logger
 from mmdet.apis import inference_detector, init_detector
 from pdf2image import convert_from_path
 
-from database.db import Connection
+from shared_file_format.database.db import Connection
 from docrecjson.commontypes import Point
 from docrecjson.elements import Document, PolygonRegion, Cell
 
@@ -36,22 +41,15 @@ def process_image(image_path: str, config_fname: str, checkpoint_file: str) -> D
     """
     model = init_detector(config_fname, checkpoint_file)
     result = inference_detector(model, image_path)
-    # result = None
 
-    # These may be included in the shared-file-format results, but I'm unsure whether this is applicable.
-    # result border?!?
-    # result_border: list = extract_border(result)
-    # result borderless ?!?
-    # result_borderless: list = extract_borderless(result)
-    # result cell ?!?
-
-
+    # bordered_tables and borderless_tables contains the coordinates of each detected table in array form
+    # (0, 0) is at the top left
+    # [top-left-x, top-left-y, bottom-right-x, bottom-right-y]
+    bordered_tables: list = extract_border(result)
+    borderless_tables: list = extract_borderless(result)
     result_cells_detection: list = extract_cell(result)
 
-    result_cells_bounding_boxes: List[List[Point]] = create_bounding_boxes(result_cells_detection)
-
     image: Image = Image.open(image_path)
-    # write_to_file(image_path, root)
     logger.info("Create json for [{}]", image_path)
     doc: Document = Document.empty(filename=os.path.basename(image_path),
                                    original_image_size=(image.width, image.height))
@@ -59,23 +57,48 @@ def process_image(image_path: str, config_fname: str, checkpoint_file: str) -> D
     doc.set_source_for_adding("prediction")
     doc.add_creator("CascadeTabNet", "1.0")
 
-    cells: List[Cell] = []
-    for cell in result_cells_bounding_boxes:
-        # the cell array has a weird format which produces conflicts with other applications in downstream tasks
-        # they produce a cross-like shape for detection
-        # this is the reason the cell list is reordered properly
-        cell_ordered: list = [cell[0], cell[2], cell[1], cell[3]]
-        cell: Cell = doc.add_cell(cell_ordered, source='prediction')
-        cells.append(cell)
+    if len(bordered_tables) != 0:
+        _handle_bordered_tables(document=doc, image_path=image_path, bordered_tables=bordered_tables)
+    elif len(borderless_tables) != 0:
+        _handle_borderless_tables(document=doc, image_path=image_path, borderless_tables=borderless_tables,
+                                  detected_cells=result_cells_detection)
 
-    if len(cells) != 0:
-        doc.add_table(get_table_coordinates_from_cells(cells), cells, source="prediction")
+    # this is the previous handling before _handle_bordered_tables and _handle_borderless_tables
 
-    logger.info("Created document from shared-file-format: \n{}", str(doc.to_json()))
-    logger.info("Finished shared-file-format creation on: \n{}", image_path)
+    # result_cells_bounding_boxes: List[List[Point]] = create_bounding_boxes(result_cells_detection)
+    #
+    # cells: List[Cell] = []
+    # for cell in result_cells_bounding_boxes:
+    #     # the cell array has a weird format which produces conflicts with other applications in downstream tasks
+    #     # they produce a cross-like shape for detection
+    #     # this is the reason the cell list is reordered properly
+    #     cell_ordered: list = [cell[0], cell[2], cell[1], cell[3]]
+    #     cell: Cell = doc.add_cell(cell_ordered, source='prediction')
+    #     cells.append(cell)
+    #
+    # if len(cells) != 0:
+    #     doc.add_table(get_table_coordinates_from_cells(cells), cells, source="prediction")
+
+    logger.info("Created document from shared_file_format: \n{}", str(doc.to_json()))
+    logger.info("Finished shared_file_format creation on: \n{}", image_path)
     logger.info("Waiting for new files...")
 
     return doc
+
+
+def _handle_bordered_tables(document: Document, image_path: str, bordered_tables: list) -> Document:
+    for table in bordered_tables:
+        document = handle_bordered_table(table, cv2.imread(image_path), document)
+
+    return document
+
+
+def _handle_borderless_tables(document: Document, image_path: str, borderless_tables: list,
+                              detected_cells: list) -> Document:
+    for table in borderless_tables:
+        document = handle_borderless_table(table, cv2.imread(image_path), detected_cells, document)
+
+    return document
 
 
 def get_table_coordinates_from_cells(cells: List[Cell]) -> list:
@@ -108,10 +131,10 @@ def get_table_coordinates_from_cells(cells: List[Cell]) -> list:
 
 def _span_polygon(point1: Tuple, point2: Tuple) -> list:
     """
-    The sci tsr polygon bounding boxes do not have the necessary coordinate structure for the shared-file-format.
+    The sci tsr polygon bounding boxes do not have the necessary coordinate structure for the shared_file_format.
     The coordinates are simply the lower left of the bbox and the upper right of the bbox.
     But this is sufficient to construct the right square coordinates.
-    It's important that the coordinates are in the right order because the shared-file-format assumes that the last
+    It's important that the coordinates are in the right order because the shared_file_format assumes that the last
     coordinates are connected.
     :param point1:  lower left coordinate
     :param point2: upper right coordinate
@@ -249,7 +272,7 @@ def parse_arguments() -> argparse.Namespace:
                         type=str)
     parser.add_argument("-ej", "--extractionJson",
                         help="Specify a folder to save the extracted json Files into. "
-                             "Leave empty, if you don't want to save any shared-file-format json files",
+                             "Leave empty, if you don't want to save any shared_file_format json files",
                         type=str, default="")
 
     return parser.parse_args()
@@ -271,7 +294,10 @@ def handle_duplicate_files(filepath: str, new_folder_location: str):
     filename, file_extension = os.path.splitext(os.path.basename(filepath))
     while os.path.isfile(os.path.join(new_folder_location, filename + " (" + str(counter) + ")" + file_extension)):
         counter += 1
-    os.rename(filepath, os.path.join(new_folder_location, filename + " (" + str(counter) + ")" + file_extension))
+    if counter == 1:
+        os.rename(filepath, os.path.join(new_folder_location, filename + file_extension))
+    else:
+        os.rename(filepath, os.path.join(new_folder_location, filename + " (" + str(counter) + ")" + file_extension))
 
 
 def move_to_folder(filepath: str, new_folder_location: str):
