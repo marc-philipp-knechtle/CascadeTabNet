@@ -79,9 +79,12 @@ def handle_bordered_table(table: list, image, document: Document) -> Document:
     """
     image_np = image  # [table[1]-10:table[3]+10,table[0]-10:table[2]+10]
     imag = image.copy()
-    final = extract_table(image_np, 1)
+    # Contains the detected cell coordinates
+    # [cell_coord_1_x, cell_coord2_y, ..., cell_coord_4_x, cell_coord_4_y]
+    final: List[List] = extract_table(image_np, 1)
     if final is None:
-        return None
+        raise RuntimeError(
+            "Couldn't extract table from document with table detected in it. Returned None. Please review.")
     x = []
     y = []
     for x1, y1, x2, y2, x3, y3, x4, y4 in final:

@@ -75,7 +75,7 @@ def extract_table(table_body, __line__, lines=None) -> List[List]:
     # cv2.waitKey(0)
 
     cell_bboxes: List[List] = []
-    # each list elements looks like this: [column_x, column_y, next_column_x, next_column_y, ?, ?, ?, ?]
+    # each list elements looks like this: [cell_coord_1_x, cell_coord2_y, ..., cell_coord_4_x, cell_coord_4_y]
     last_cache: List[List] = []
     # creating bounding boxes of cells from the points detected
     logger.debug("Create cell bounding boxes with the detected points.")
