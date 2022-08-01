@@ -17,7 +17,7 @@ def line_intersection(x1, y1, x2, y2, x3, y3, x4, y4) -> Tuple[int, int]:
         x4: line2, point2 x-coordinate
         y4: line2, point2 y-coordinate
 
-    Returns: the intersection point (x, y) of the lines if an intersection is present
+    Returns: the intersection point (x, y) of the lines if an intersection is present, (x1, y3)
 
     """
 
@@ -65,10 +65,9 @@ def extract_table(table_body, __line__, lines=None):
                 continue
         points.append(point)
 
-    for point in points:
-        for x, y in point:
-            cv2.line(table, (x, y), (x, y), (0, 0, 255), 8)
-
+    # for point in points:
+    #     for x, y in point:
+    #         cv2.line(table, (x, y), (x, y), (0, 0, 255), 8)
     # cv2.imshow("intersection",table)
     # cv2.waitKey(0)
 
