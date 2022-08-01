@@ -1,7 +1,7 @@
 import cv2
 from Functions.line_detection import line_detection
 from loguru import logger
-from typing import Tuple
+from typing import Tuple, List
 
 
 def line_intersection(x1, y1, x2, y2, x3, y3, x4, y4) -> Tuple[int, int]:
@@ -26,7 +26,7 @@ def line_intersection(x1, y1, x2, y2, x3, y3, x4, y4) -> Tuple[int, int]:
         return x1, y3
 
 
-def extract_table(table_body, __line__, lines=None):
+def extract_table(table_body, __line__, lines=None) -> List[List[int, int, int, int, int, int, int, int]]:
     """
     Main extraction function
     Args:
@@ -34,7 +34,8 @@ def extract_table(table_body, __line__, lines=None):
         __line__: Decision parameter whether table is bordered or borderless. 0=borderless, 1=bordered
         lines: lines for borderless table
 
-    Returns: Array of cells
+    Returns: Array of cells with structure:
+    List[List[cell_coord_1_x, cell_coord2_y, ..., cell_coord_4_x, cell_coord_4_y]]
     """
     # Deciding variable
     if __line__ == 1:
@@ -49,14 +50,14 @@ def extract_table(table_body, __line__, lines=None):
         logger.debug("Either Horizontal Or Vertical Lines Not Detected")
         return None
 
-    table = table_body.copy()
-    points = []
+    # List of all Rows, each row with List of Columns, each Column with List of points
+    points: List[List[List]] = []
     print("[Table status] : Processing table with lines")
     logger.debug("[Table status] : Processing table with lines")
 
     # Remove same lines detected closer
     for x1, y1, x2, y2 in temp_lines_ver:
-        point = []
+        point: List[List] = []
         for x3, y3, x4, y4 in temp_lines_hor:
             try:
                 x, y = line_intersection(x1, y1, x2, y2, x3, y3, x4, y4)
@@ -66,14 +67,16 @@ def extract_table(table_body, __line__, lines=None):
         points.append(point)
 
     # Visualization of the detected points
+    # table = table_body.copy()
     # for point in points:
     #     for x, y in point:
     #         cv2.line(table, (x, y), (x, y), (0, 0, 255), 8)
     # cv2.imshow("intersection",table)
     # cv2.waitKey(0)
 
-    box = []
-    last_cache = []
+    cell_bboxes: List[List[int, int, int, int, int, int, int, int]] = []
+    # each list elements looks like this: [column_x, column_y, next_column_x, next_column_y, ?, ?, ?, ?]
+    last_cache: List[List] = []
     # creating bounding boxes of cells from the points detected
     logger.debug("Create cell bounding boxes with the detected points.")
     logger.debug("Processing detected table with " + str(len(points)) + " detected rows.")
@@ -87,7 +90,6 @@ def extract_table(table_body, __line__, lines=None):
         for index_column, col in enumerate(row):
             logger.debug("Processing detected column at index: " + str(index_column) + " from a total of " + str(
                 len(col)) + " columns.")
-            # This should theoretically not happen, but was added by the original authors
             if index_column == number_of_columns - 1:
                 break
             if index_row == 0:
@@ -105,7 +107,7 @@ def extract_table(table_body, __line__, lines=None):
                         last_cache[k][4] = col[0]
                         last_cache[k][5] = col[1]
                         if last_cache[k][4] != 9999 and last_cache[k][6] != 9999:
-                            box.append(last_cache[k])
+                            cell_bboxes.append(last_cache[k])
                             index.append(k)
                             flag = 1
 
@@ -113,7 +115,7 @@ def extract_table(table_body, __line__, lines=None):
                         last_cache[k][6] = nextcol[0]
                         last_cache[k][7] = nextcol[1]
                         if last_cache[k][4] != 9999 and last_cache[k][6] != 9999:
-                            box.append(last_cache[k])
+                            cell_bboxes.append(last_cache[k])
                             index.append(k)
                             flag = 1
 
@@ -131,14 +133,15 @@ def extract_table(table_body, __line__, lines=None):
             last_cache = current_vala
 
     # Visualizing the cells
+    # table = table_body.copy()
     # count = 1
-    # for i in box:
+    # for i in cell_bboxes:
     #     cv2.rectangle(table_body, (i[0], i[1]), (i[6], i[7]), (int(i[7]%255),0,int(i[0]%255)), 2)
     # #     count+=1
     # cv2.imshow("cells",table_body)
     # cv2.waitKey(0)
 
-    return box
+    return cell_bboxes
 
 
 # extract_table(cv2.imread("E:\\KSK\\KSK ML\\KSK PAPERS\\TabXNet\\For Git\\images\\table.PNG"),1,lines=None)
