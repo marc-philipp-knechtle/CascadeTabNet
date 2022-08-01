@@ -102,9 +102,9 @@ def extract_table(table_body, __line__, lines=None) -> List[List]:
                 matching_coordinates_found: bool = False
                 indexes_to_remove = []
                 logger.debug("Searching in cache for matching cells with size: " + str(len(cache)))
-                for index_k, last in enumerate(cache):
+                for index_k, cached_cell in enumerate(cache):
 
-                    if (col[1] == last[1]) and cache[index_k][4] is None:
+                    if (col[1] == cached_cell[1]) and cache[index_k][4] is None:
                         cache[index_k][4] = col[0]
                         cache[index_k][5] = col[1]
                         if cache[index_k][4] is not None and cache[index_k][6] is not None:
@@ -112,7 +112,7 @@ def extract_table(table_body, __line__, lines=None) -> List[List]:
                             indexes_to_remove.append(index_k)
                             matching_coordinates_found = True
 
-                    if (next_column[1] == last[3]) and cache[index_k][6] is None:
+                    if (next_column[1] == cached_cell[3]) and cache[index_k][6] is None:
                         cache[index_k][6] = next_column[0]
                         cache[index_k][7] = next_column[1]
                         if cache[index_k][4] is not None and cache[index_k][6] is not None:
@@ -126,9 +126,9 @@ def extract_table(table_body, __line__, lines=None) -> List[List]:
                 for index_k in indexes_to_remove:
                     cache.pop(index_k)
                 if not matching_coordinates_found:
-                    for last in cache:
-                        if last[4] is None or last[6] is None:
-                            current_vala.append(last)
+                    for cached_cell in cache:
+                        if cached_cell[4] is None or cached_cell[6] is None:
+                            current_vala.append(cached_cell)
 
         if index_row != 0:
             cache = current_vala
