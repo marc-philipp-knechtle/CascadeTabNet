@@ -76,7 +76,7 @@ def extract_table(table_body, __line__, lines=None) -> List[List]:
 
     cell_bboxes: List[List] = []
     # each list elements looks like this: [cell_coord_1_x, cell_coord2_y, ..., cell_coord_4_x, cell_coord_4_y]
-    last_cache: List[List] = []
+    cache: List[List] = []
     # creating bounding boxes of cells from the points detected
     logger.debug("Create cell bounding boxes with the detected points.")
     logger.debug("Processing detected table with " + str(len(points)) + " detected rows.")
@@ -93,45 +93,45 @@ def extract_table(table_body, __line__, lines=None) -> List[List]:
                 len(col)) + " columns.")
             if index_column == number_of_columns - 1:
                 break
-            if index_row == 0:
+            if index_row == 0: # add comment: it's not possible to find horizontal neighbours in the first row -> skip
                 next_column = row[index_column + 1]
-                last_cache.append([col[0], col[1], next_column[0], next_column[1], None, None, None, None])
+                cache.append([col[0], col[1], next_column[0], next_column[1], None, None, None, None])
             else:
                 next_column = row[index_column + 1]
                 current_vala.append([col[0], col[1], next_column[0], next_column[1], None, None, None, None])
                 matching_coordinates_found: bool = False
                 indexes_to_remove = []
-                logger.debug("Searching in cache for matching cells with size: " + str(len(last_cache)))
-                for index_k, last in enumerate(last_cache):
+                logger.debug("Searching in cache for matching cells with size: " + str(len(cache)))
+                for index_k, last in enumerate(cache):
 
-                    if (col[1] == last[1]) and last_cache[index_k][4] is None:
-                        last_cache[index_k][4] = col[0]
-                        last_cache[index_k][5] = col[1]
-                        if last_cache[index_k][4] is not None and last_cache[index_k][6] is not None:
-                            cell_bboxes.append(last_cache[index_k])
+                    if (col[1] == last[1]) and cache[index_k][4] is None:
+                        cache[index_k][4] = col[0]
+                        cache[index_k][5] = col[1]
+                        if cache[index_k][4] is not None and cache[index_k][6] is not None:
+                            cell_bboxes.append(cache[index_k])
                             indexes_to_remove.append(index_k)
                             matching_coordinates_found = True
 
-                    if (next_column[1] == last[3]) and last_cache[index_k][6] is None:
-                        last_cache[index_k][6] = next_column[0]
-                        last_cache[index_k][7] = next_column[1]
-                        if last_cache[index_k][4] is not None and last_cache[index_k][6] is not None:
-                            cell_bboxes.append(last_cache[index_k])
+                    if (next_column[1] == last[3]) and cache[index_k][6] is None:
+                        cache[index_k][6] = next_column[0]
+                        cache[index_k][7] = next_column[1]
+                        if cache[index_k][4] is not None and cache[index_k][6] is not None:
+                            cell_bboxes.append(cache[index_k])
                             indexes_to_remove.append(index_k)
                             matching_coordinates_found = True
 
-                    if len(last_cache) != 0:
-                        if last_cache[index_k][4] is None or last_cache[index_k][6] is None:
+                    if len(cache) != 0:
+                        if cache[index_k][4] is None or cache[index_k][6] is None:
                             matching_coordinates_found = False
                 for index_k in indexes_to_remove:
-                    last_cache.pop(index_k)
+                    cache.pop(index_k)
                 if not matching_coordinates_found:
-                    for last in last_cache:
+                    for last in cache:
                         if last[4] is None or last[6] is None:
                             current_vala.append(last)
 
         if index_row != 0:
-            last_cache = current_vala
+            cache = current_vala
 
     # Visualizing the cells
     # table = table_body.copy()
