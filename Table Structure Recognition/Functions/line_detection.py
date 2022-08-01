@@ -2,10 +2,12 @@ import cv2
 import numpy as np
 from loguru import logger
 
-
 # Input : Image
-# Output : hor,ver 
-def line_detection(image):
+# Output : hor,ver
+from typing import Optional, List, Tuple
+
+
+def line_detection(image) -> Tuple[Optional[List[List[int]]], Optional[List[List[int]]]]:
     """
     Args:
         image: numpy image
@@ -23,8 +25,8 @@ def line_detection(image):
     horizontal = bw.copy()
     vertical = bw.copy()
 
-    hor = extract_horizontal_lines(horizontal)
-    ver = extract_vertical_lines(vertical)
+    hor: Optional[List[List[int]]] = extract_horizontal_lines(horizontal)
+    ver: Optional[List[List[int]]] = extract_vertical_lines(vertical)
 
     # Visualization of Lines After Post Processing
     # for x1, y1, x2, y2 in ver:
@@ -39,7 +41,7 @@ def line_detection(image):
     return hor, ver
 
 
-def extract_vertical_lines(vertical):
+def extract_vertical_lines(vertical) -> Optional[List[List[int]]]:
     # [vertical lines]
     # Create structure element for extracting vertical lines through morphology operations
     vertical_structure = cv2.getStructuringElement(cv2.MORPH_RECT, (1, 15))
@@ -103,7 +105,7 @@ def extract_vertical_lines(vertical):
     return ver
 
 
-def extract_horizontal_lines(horizontal):
+def extract_horizontal_lines(horizontal) -> Optional[List[List[int]]]:
     # Create structure element for extracting horizontal lines through morphology operations
     horizontal_structure = cv2.getStructuringElement(cv2.MORPH_RECT, (15, 1))
 
