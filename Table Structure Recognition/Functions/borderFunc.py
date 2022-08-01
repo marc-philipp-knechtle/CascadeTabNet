@@ -93,7 +93,8 @@ def extract_table(table_body, __line__, lines=None) -> List[List]:
                 len(col)) + " columns.")
             if index_column == number_of_columns - 1:
                 break
-            if index_row == 0: # add comment: it's not possible to find horizontal neighbours in the first row -> skip
+            # it's not possible to find horizontal neighbours in the first row -> skip
+            if index_row == 0:
                 next_column = row[index_column + 1]
                 cache.append([col[0], col[1], next_column[0], next_column[1], None, None, None, None])
             else:
@@ -102,6 +103,7 @@ def extract_table(table_body, __line__, lines=None) -> List[List]:
                 matching_coordinates_found: bool = False
                 indexes_to_remove = []
                 logger.debug("Searching in cache for matching cells with size: " + str(len(cache)))
+                cached_cell: List[int]  # List[cell_coord_1_x, cell_coord_2_y, ..., cell_coord_4_x, cell_coord_4_y]
                 for index_k, cached_cell in enumerate(cache):
 
                     if (col[1] == cached_cell[1]) and cache[index_k][4] is None:
