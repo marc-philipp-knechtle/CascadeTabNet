@@ -5,6 +5,12 @@ import numpy as np
 # Input : Image
 # Output : hor,ver 
 def line_detection(image):
+    """
+    Args:
+        image: numpy image
+
+    Returns: horizontal and vertical lines
+    """
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     bw = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 15, 1)
     bw = cv2.bitwise_not(bw)
@@ -12,55 +18,54 @@ def line_detection(image):
     # To visualize image after thresholding ##
     # cv2.imshow("bw",bw)
     # cv2.waitKey(0)
-    ###########################################
+
     horizontal = bw.copy()
     vertical = bw.copy()
-    img = image.copy()
     # [horizontal lines]
     # Create structure element for extracting horizontal lines through morphology operations
-    horizontalStructure = cv2.getStructuringElement(cv2.MORPH_RECT, (15, 1))
+    horizontal_structure = cv2.getStructuringElement(cv2.MORPH_RECT, (15, 1))
 
     # Apply morphology operations
-    horizontal = cv2.erode(horizontal, horizontalStructure)
-    horizontal = cv2.dilate(horizontal, horizontalStructure)
+    horizontal = cv2.erode(horizontal, horizontal_structure)
+    horizontal = cv2.dilate(horizontal, horizontal_structure)
 
     horizontal = cv2.dilate(horizontal, (1, 1), iterations=5)
     horizontal = cv2.erode(horizontal, (1, 1), iterations=5)
 
-    ## Uncomment to visualize highlighted Horizontal lines
+    # Uncomment to visualize highlighted Horizontal lines
     # cv2.imshow("horizontal",horizontal)
     # cv2.waitKey(0)
 
     # HoughlinesP function to detect horizontal lines
-    hor_lines = cv2.HoughLinesP(horizontal, rho=1, theta=np.pi / 180, threshold=100, minLineLength=30, maxLineGap=3)
-    if hor_lines is None:
+    horizontal_lines = cv2.HoughLinesP(horizontal, rho=1, theta=np.pi / 180, threshold=100, minLineLength=30,
+                                       maxLineGap=3)
+    if horizontal_lines is None:
         return None, None
     temp_line = []
-    for line in hor_lines:
+    for line in horizontal_lines:
         for x1, y1, x2, y2 in line:
             temp_line.append([x1, y1 - 5, x2, y2 - 5])
 
     # Sorting the list of detected lines by Y1
-    hor_lines = sorted(temp_line, key=lambda x: x[1])
+    horizontal_lines = sorted(temp_line, key=lambda x: x[1])
 
-    ## Uncomment this part to visualize the lines detected on the image ##
-    # print(len(hor_lines))
-    # for x1, y1, x2, y2 in hor_lines:
+    # Uncomment this part to visualize the lines detected on the image #
+    # print(len(horizontal_lines))
+    # for x1, y1, x2, y2 in horizontal_lines:
     #     cv2.line(image, (x1,y1), (x2,y2), (0, 255, 0), 1)
 
     # print(image.shape)
     # cv2.imshow("image",image)
     # cv2.waitKey(0)
-    ####################################################################
 
-    ## Selection of best lines from all the horizontal lines detected ##
+    # Selection of best lines from all the horizontal lines detected
     lasty1 = -111111
     lines_x1 = []
     lines_x2 = []
     hor = []
     i = 0
-    for x1, y1, x2, y2 in hor_lines:
-        if y1 >= lasty1 and y1 <= lasty1 + 10:
+    for x1, y1, x2, y2 in horizontal_lines:
+        if lasty1 <= y1 <= lasty1 + 10:
             lines_x1.append(x1)
             lines_x2.append(x2)
         else:
