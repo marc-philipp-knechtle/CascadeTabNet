@@ -135,8 +135,6 @@ def line_detection(image):
                 (max(y1, y2) < max(lasty1, lasty2) - 20 or max(y1, y2) < max(lasty1, lasty2) + 20))):
             lines_y1.append(y1)
             lines_y2.append(y2)
-            # lasty1 = y1
-            # lasty2 = y2
         else:
             if count != 0 and len(lines_y1) is not 0:
                 ver.append([lastx1, min(lines_y2) - 5, lastx1, max(lines_y1) - 5])
@@ -153,10 +151,8 @@ def line_detection(image):
     # Visualization of Lines After Post Processing
     # for x1, y1, x2, y2 in ver:
     #     cv2.line(img, (x1,y1), (x2,y2), (0, 255, 0), 1)
-
     # for x1, y1, x2, y2 in hor:
     #     cv2.line(img, (x1,y1), (x2,y2), (0, 255, 0), 1)
-
     # cv2.imshow("image",img)
     # cv2.waitKey(0)
 
