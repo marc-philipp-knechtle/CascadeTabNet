@@ -84,6 +84,7 @@ def extract_vertical_lines(vertical) -> Optional[List[List[int]]]:
     count = 0
     last_y1 = -11111
     last_y2 = -11111
+    # this code segment is used to unify originally contiguous lines, which have been detected seperated for some reason
     for x1, y1, x2, y2 in ver_lines:
         if last_x1 <= x1 <= last_x1 + 15 and not (
                 (min(y1, y2) < min(last_y1, last_y2) - 20 or min(y1, y2) < min(last_y1, last_y2) + 20) and (
@@ -93,6 +94,7 @@ def extract_vertical_lines(vertical) -> Optional[List[List[int]]]:
         else:
             if count != 0 and len(lines_y1) != 0:
                 ver.append([last_x1, min(lines_y2) - 5, last_x1, max(lines_y1) - 5])
+                logger.debug("Unified matching contiguous vertical lines.")
             last_x1 = x1
             lines_y1 = []
             lines_y2 = []
