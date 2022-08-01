@@ -93,37 +93,37 @@ def extract_table(table_body, __line__, lines=None) -> List[List]:
             if index_column == number_of_columns - 1:
                 break
             if index_row == 0:
-                nextcol = row[index_column + 1]
-                last_cache.append([col[0], col[1], nextcol[0], nextcol[1], None, None, None, None])
+                next_column = row[index_column + 1]
+                last_cache.append([col[0], col[1], next_column[0], next_column[1], None, None, None, None])
             else:
-                nextcol = row[index_column + 1]
-                current_vala.append([col[0], col[1], nextcol[0], nextcol[1], None, None, None, None])
+                next_column = row[index_column + 1]
+                current_vala.append([col[0], col[1], next_column[0], next_column[1], None, None, None, None])
                 # Matching 
                 flag = 1
                 index = []
-                for k, last in enumerate(last_cache):
+                for index_k, last in enumerate(last_cache):
 
-                    if (col[1] == last[1]) and last_cache[k][4] is None:
-                        last_cache[k][4] = col[0]
-                        last_cache[k][5] = col[1]
-                        if last_cache[k][4] is not None and last_cache[k][6] is not None:
-                            cell_bboxes.append(last_cache[k])
-                            index.append(k)
+                    if (col[1] == last[1]) and last_cache[index_k][4] is None:
+                        last_cache[index_k][4] = col[0]
+                        last_cache[index_k][5] = col[1]
+                        if last_cache[index_k][4] is not None and last_cache[index_k][6] is not None:
+                            cell_bboxes.append(last_cache[index_k])
+                            index.append(index_k)
                             flag = 1
 
-                    if (nextcol[1] == last[3]) and last_cache[k][6] is None:
-                        last_cache[k][6] = nextcol[0]
-                        last_cache[k][7] = nextcol[1]
-                        if last_cache[k][4] is not None and last_cache[k][6] is not None:
-                            cell_bboxes.append(last_cache[k])
-                            index.append(k)
+                    if (next_column[1] == last[3]) and last_cache[index_k][6] is None:
+                        last_cache[index_k][6] = next_column[0]
+                        last_cache[index_k][7] = next_column[1]
+                        if last_cache[index_k][4] is not None and last_cache[index_k][6] is not None:
+                            cell_bboxes.append(last_cache[index_k])
+                            index.append(index_k)
                             flag = 1
 
                     if len(last_cache) != 0:
-                        if last_cache[k][4] is None or last_cache[k][6] is None:
+                        if last_cache[index_k][4] is None or last_cache[index_k][6] is None:
                             flag = 0
-                for k in index:
-                    last_cache.pop(k)
+                for index_k in index:
+                    last_cache.pop(index_k)
                 if flag == 0:
                     for last in last_cache:
                         if last[4] is None or last[6] is None:
