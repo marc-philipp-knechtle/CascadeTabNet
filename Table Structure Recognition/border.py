@@ -2,7 +2,7 @@ import cv2
 import lxml.etree as etree
 from typing import List
 
-from Functions.borderFunc import extract_table, extractText, span
+from Functions.borderFunc import extract_table, extract_text, span
 from docrecjson.elements import Document, Cell
 
 
@@ -38,7 +38,7 @@ def border(table, image):
     cv2.rectangle(imag, (table[0], table[1]), (table[2], table[3]), (0, 255, 0), 2)
     for box in final:
         if box[0] > table[0] - 5 and box[1] > table[1] - 5 and box[2] < table[2] + 5 and box[3] < table[3] + 5:
-            cell_box = extractText(imag[box[1]:box[3], box[0]:box[4]])
+            cell_box = extract_text(imag[box[1]:box[3], box[0]:box[4]])
             if cell_box is None:
                 continue
             # to visualize the detected text areas
@@ -101,7 +101,7 @@ def handle_bordered_table(table: list, image, document: Document) -> Document:
     cv2.rectangle(imag, (table[0], table[1]), (table[2], table[3]), (0, 255, 0), 2)
     for box in final:
         if box[0] > table[0] - 5 and box[1] > table[1] - 5 and box[2] < table[2] + 5 and box[3] < table[3] + 5:
-            cell_box = extractText(imag[box[1]:box[3], box[0]:box[4]])
+            cell_box = extract_text(imag[box[1]:box[3], box[0]:box[4]])
             if cell_box is None:
                 continue
             # to visualize the detected text areas

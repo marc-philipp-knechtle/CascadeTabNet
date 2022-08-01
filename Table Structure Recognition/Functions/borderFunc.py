@@ -44,6 +44,7 @@ def extract_table(table_body, __line__, lines=None):
     k = 0
     points = []
     print("[Table status] : Processing table with lines")
+    logger.debug("[Table status] : Processing table with lines")
     # Remove same lines detected closer
     for x1, y1, x2, y2 in temp_lines_ver:
         point = []
@@ -66,90 +67,90 @@ def extract_table(table_body, __line__, lines=None):
     # boxno = -1
     box = []
     flag = 1
-    lastCache = []
-    ## creating bounding boxes of cells from the points detected 
-    ## This is still under work and might fail on some images
+    last_cache = []
+    # creating bounding boxes of cells from the points detected
+    # This is still under work and might fail on some images
     for i, row in enumerate(points):
         limitj = len(row)
-        currentVala = []
+        current_vala = []
         for j, col in enumerate(row):
 
-            if (j == limitj - 1):
+            if j == limitj - 1:
                 break
-            if (i == 0):
+            if i == 0:
                 nextcol = row[j + 1]
-                lastCache.append([col[0], col[1], nextcol[0], nextcol[1], 9999, 9999, 9999, 9999])
+                last_cache.append([col[0], col[1], nextcol[0], nextcol[1], 9999, 9999, 9999, 9999])
             else:
                 nextcol = row[j + 1]
-                currentVala.append([col[0], col[1], nextcol[0], nextcol[1], 9999, 9999, 9999, 9999])
+                current_vala.append([col[0], col[1], nextcol[0], nextcol[1], 9999, 9999, 9999, 9999])
                 # Matching 
                 flag = 1
                 index = []
-                for k, last in enumerate(lastCache):
+                for k, last in enumerate(last_cache):
 
-                    if (col[1] == last[1]) and lastCache[k][4] == 9999:
-                        lastCache[k][4] = col[0]
-                        lastCache[k][5] = col[1]
-                        if lastCache[k][4] != 9999 and lastCache[k][6] != 9999:
-                            box.append(lastCache[k])
+                    if (col[1] == last[1]) and last_cache[k][4] == 9999:
+                        last_cache[k][4] = col[0]
+                        last_cache[k][5] = col[1]
+                        if last_cache[k][4] != 9999 and last_cache[k][6] != 9999:
+                            box.append(last_cache[k])
                             index.append(k)
                             flag = 1
 
-                    if (nextcol[1] == last[3]) and lastCache[k][6] == 9999:
-                        lastCache[k][6] = nextcol[0]
-                        lastCache[k][7] = nextcol[1]
-                        if lastCache[k][4] != 9999 and lastCache[k][6] != 9999:
-                            box.append(lastCache[k])
+                    if (nextcol[1] == last[3]) and last_cache[k][6] == 9999:
+                        last_cache[k][6] = nextcol[0]
+                        last_cache[k][7] = nextcol[1]
+                        if last_cache[k][4] != 9999 and last_cache[k][6] != 9999:
+                            box.append(last_cache[k])
                             index.append(k)
                             flag = 1
 
-                    if len(lastCache) != 0:
-                        if lastCache[k][4] == 9999 or lastCache[k][6] == 9999:
+                    if len(last_cache) != 0:
+                        if last_cache[k][4] == 9999 or last_cache[k][6] == 9999:
                             flag = 0
                 # print(index)
                 for k in index:
-                    lastCache.pop(k)
+                    last_cache.pop(k)
                 # tranfsering
                 if flag == 0:
-                    for last in lastCache:
+                    for last in last_cache:
                         if last[4] == 9999 or last[6] == 9999:
-                            currentVala.append(last)
+                            current_vala.append(last)
 
-        if (i != 0):
-            lastCache = currentVala
+        if i != 0:
+            last_cache = current_vala
 
-    ## Visualizing the cells ##
+    # Visualizing the cells
     # count = 1
     # for i in box:
     #     cv2.rectangle(table_body, (i[0], i[1]), (i[6], i[7]), (int(i[7]%255),0,int(i[0]%255)), 2)
     # #     count+=1
     # cv2.imshow("cells",table_body)
     # cv2.waitKey(0)
-    ############################
+
     return box
 
 
 # extract_table(cv2.imread("E:\\KSK\\KSK ML\\KSK PAPERS\\TabXNet\\For Git\\images\\table.PNG"),1,lines=None)
 
 
-def findX(X, x):
+def _find_x(X, x):
     return X.index(x)
 
 
-def findY(Y, y):
+def _find_y(Y, y):
     return Y.index(y)
 
 
 def span(box, X, Y):
-    start_col = findX(X, box[0])  ## x1
-    end_col = findX(X, box[4]) - 1  ## x3
-    start_row = findY(Y, box[1])  ## y1
-    end_row = findY(Y, box[3]) - 1  ## y2
+    start_col = _find_x(X, box[0])  # x1
+    end_col = _find_x(X, box[4]) - 1  # x3
+    start_row = _find_y(Y, box[1])  # y1
+    end_row = _find_y(Y, box[3]) - 1  # y2
     # print(end_col,end_row,start_col,start_row)
     return end_col, end_row, start_col, start_row
 
 
-def extractText(img):
+def extract_text(img):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     _, thresh1 = cv2.threshold(gray, 0, 255, cv2.THRESH_OTSU | cv2.THRESH_BINARY_INV)
     # cv2_imshow(thresh1)
