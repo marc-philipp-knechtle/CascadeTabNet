@@ -89,7 +89,7 @@ def extract_vertical_lines(vertical):
             lines_y1.append(y1)
             lines_y2.append(y2)
         else:
-            if count != 0 and len(lines_y1) is not 0:
+            if count != 0 and len(lines_y1) != 0:
                 ver.append([last_x1, min(lines_y2) - 5, last_x1, max(lines_y1) - 5])
             last_x1 = x1
             lines_y1 = []
@@ -150,7 +150,7 @@ def extract_horizontal_lines(horizontal):
             lines_x1.append(x1)
             lines_x2.append(x2)
         else:
-            if i != 0 and len(lines_x1) is not 0:
+            if i != 0 and len(lines_x1) != 0:
                 hor.append([min(lines_x1), last_y1, max(lines_x2), last_y1])
             last_y1 = y1
             lines_x1 = []
