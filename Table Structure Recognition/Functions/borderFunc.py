@@ -99,10 +99,9 @@ def extract_table(table_body, __line__, lines=None) -> List[List]:
             else:
                 next_column = row[index_column + 1]
                 current_vala.append([col[0], col[1], next_column[0], next_column[1], None, None, None, None])
-                # Matching 
-                flag = 1
+                matching_coordinates_found: bool = False
                 indexes_to_remove = []
-                logger.debug("Searching in cache of: " + str(len(last_cache)))
+                logger.debug("Searching in cache for matching cells with size: " + str(len(last_cache)))
                 for index_k, last in enumerate(last_cache):
 
                     if (col[1] == last[1]) and last_cache[index_k][4] is None:
@@ -111,7 +110,7 @@ def extract_table(table_body, __line__, lines=None) -> List[List]:
                         if last_cache[index_k][4] is not None and last_cache[index_k][6] is not None:
                             cell_bboxes.append(last_cache[index_k])
                             indexes_to_remove.append(index_k)
-                            flag = 1
+                            matching_coordinates_found = True
 
                     if (next_column[1] == last[3]) and last_cache[index_k][6] is None:
                         last_cache[index_k][6] = next_column[0]
@@ -119,14 +118,14 @@ def extract_table(table_body, __line__, lines=None) -> List[List]:
                         if last_cache[index_k][4] is not None and last_cache[index_k][6] is not None:
                             cell_bboxes.append(last_cache[index_k])
                             indexes_to_remove.append(index_k)
-                            flag = 1
+                            matching_coordinates_found = True
 
                     if len(last_cache) != 0:
                         if last_cache[index_k][4] is None or last_cache[index_k][6] is None:
-                            flag = 0
+                            matching_coordinates_found = False
                 for index_k in indexes_to_remove:
                     last_cache.pop(index_k)
-                if flag == 0:
+                if not matching_coordinates_found:
                     for last in last_cache:
                         if last[4] is None or last[6] is None:
                             current_vala.append(last)
