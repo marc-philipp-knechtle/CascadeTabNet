@@ -71,7 +71,6 @@ def extract_table(table_body, __line__, lines=None):
     # cv2.imshow("intersection",table)
     # cv2.waitKey(0)
 
-    # boxno = -1
     box = []
     last_cache = []
     # creating bounding boxes of cells from the points detected
