@@ -86,7 +86,8 @@ def extract_table(table_body, __line__, lines=None) -> List[List]:
             "Processing detected row at index: " + str(index_row) + " from a total of " + str(len(points)) + " rows.")
         number_of_columns = len(row)
         current_vala = []
-        # enumeration through each row in the detected table
+        # enumeration through each column in the detected table row
+        col: List[int]  # consists of List[int, int] -> each for one column position for the detected row
         for index_column, col in enumerate(row):
             logger.debug("Processing detected column at index: " + str(index_column) + " from a total of " + str(
                 len(col)) + " columns.")
@@ -100,7 +101,8 @@ def extract_table(table_body, __line__, lines=None) -> List[List]:
                 current_vala.append([col[0], col[1], next_column[0], next_column[1], None, None, None, None])
                 # Matching 
                 flag = 1
-                index = []
+                indexes_to_remove = []
+                logger.debug("Searching in cache of: " + str(len(last_cache)))
                 for index_k, last in enumerate(last_cache):
 
                     if (col[1] == last[1]) and last_cache[index_k][4] is None:
@@ -108,7 +110,7 @@ def extract_table(table_body, __line__, lines=None) -> List[List]:
                         last_cache[index_k][5] = col[1]
                         if last_cache[index_k][4] is not None and last_cache[index_k][6] is not None:
                             cell_bboxes.append(last_cache[index_k])
-                            index.append(index_k)
+                            indexes_to_remove.append(index_k)
                             flag = 1
 
                     if (next_column[1] == last[3]) and last_cache[index_k][6] is None:
@@ -116,13 +118,13 @@ def extract_table(table_body, __line__, lines=None) -> List[List]:
                         last_cache[index_k][7] = next_column[1]
                         if last_cache[index_k][4] is not None and last_cache[index_k][6] is not None:
                             cell_bboxes.append(last_cache[index_k])
-                            index.append(index_k)
+                            indexes_to_remove.append(index_k)
                             flag = 1
 
                     if len(last_cache) != 0:
                         if last_cache[index_k][4] is None or last_cache[index_k][6] is None:
                             flag = 0
-                for index_k in index:
+                for index_k in indexes_to_remove:
                     last_cache.pop(index_k)
                 if flag == 0:
                     for last in last_cache:
