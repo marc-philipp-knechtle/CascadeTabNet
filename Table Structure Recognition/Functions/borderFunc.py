@@ -1,16 +1,25 @@
 import cv2
 from Functions.line_detection import line_detection
 from loguru import logger
+from typing import Tuple
 
 
-##################  Functions required for Border table Recognition #################
+def line_intersection(x1, y1, x2, y2, x3, y3, x4, y4) -> Tuple[int, int]:
+    """
 
-## Return the intersection of lines only if intersection is present ##
-# Input : x1, y1, x2, y2, x3, y3, x4, y4 (1: vertical, 2: horizontal)
-# Output : (x,y) Intersection point
-def line_intersection(x1, y1, x2, y2, x3, y3, x4, y4):
-    # print(x1, y1, x2, y2)
-    # print(x3, y3, x4, y4)
+    Args:
+        x1: line1, point1 x-coordinate
+        y1: line1, point1 y-coordinate
+        x2: line1, point2 x-coordinate
+        y2: line1, point2 y-coordinate
+        x3: line2, point1 x-coordinate
+        y3: line2, point1 y-coordinate
+        x4: line2, point2 x-coordinate
+        y4: line2, point2 y-coordinate
+
+    Returns: the intersection point (x, y) of the lines if an intersection is present
+
+    """
 
     if ((x1 >= x3 - 5 or x1 >= x3 + 5) and (x1 <= x4 + 5 or x1 <= x4 - 5) and (
             y3 + 8 >= min(y1, y2) or y3 - 5 >= min(y1, y2)) and y3 <= max(y1, y2) + 5):
@@ -44,6 +53,7 @@ def extract_table(table_body, __line__, lines=None):
     points = []
     print("[Table status] : Processing table with lines")
     logger.debug("[Table status] : Processing table with lines")
+
     # Remove same lines detected closer
     for x1, y1, x2, y2 in temp_lines_ver:
         point = []
