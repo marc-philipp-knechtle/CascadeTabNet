@@ -76,19 +76,25 @@ def extract_table(table_body, __line__, lines=None):
     last_cache = []
     # creating bounding boxes of cells from the points detected
     logger.debug("Create cell bounding boxes with the detected points.")
+    logger.debug("Processing detected table with " + str(len(points)) + " detected rows.")
     # This is still under work and might fail on some images
-    for i, row in enumerate(points):
-        limitj = len(row)
+    for index_row, row in enumerate(points):
+        logger.debug(
+            "Processing detected row at index: " + str(index_row) + " from a total of " + str(len(points)) + "rows.")
+        number_of_columns = len(row)
         current_vala = []
-        for j, col in enumerate(row):
-
-            if j == limitj - 1:
+        # enumeration through each row in the detected table
+        for index_column, col in enumerate(row):
+            logger.debug("Processing detected column at index: " + str(index_column) + " from a total of " + str(
+                len(col)) + " columns.")
+            # This should theoretically not happen, but was added by the original authors
+            if index_column == number_of_columns - 1:
                 break
-            if i == 0:
-                nextcol = row[j + 1]
+            if index_row == 0:
+                nextcol = row[index_column + 1]
                 last_cache.append([col[0], col[1], nextcol[0], nextcol[1], 9999, 9999, 9999, 9999])
             else:
-                nextcol = row[j + 1]
+                nextcol = row[index_column + 1]
                 current_vala.append([col[0], col[1], nextcol[0], nextcol[1], 9999, 9999, 9999, 9999])
                 # Matching 
                 flag = 1
@@ -121,7 +127,7 @@ def extract_table(table_body, __line__, lines=None):
                         if last[4] == 9999 or last[6] == 9999:
                             current_vala.append(last)
 
-        if i != 0:
+        if index_row != 0:
             last_cache = current_vala
 
     # Visualizing the cells
