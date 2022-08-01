@@ -37,11 +37,10 @@ def extract_table(table_body, __line__, lines=None):
         temp_lines_hor, temp_lines_ver = lines
 
     if len(temp_lines_hor) == 0 or len(temp_lines_ver) == 0:
-        print("Either Horizontal Or Vertical Lines Not Detected")
+        logger.debug("Either Horizontal Or Vertical Lines Not Detected")
         return None
 
     table = table_body.copy()
-    k = 0
     points = []
     print("[Table status] : Processing table with lines")
     logger.debug("[Table status] : Processing table with lines")
@@ -50,7 +49,6 @@ def extract_table(table_body, __line__, lines=None):
         point = []
         for x3, y3, x4, y4 in temp_lines_hor:
             try:
-                k += 1
                 x, y = line_intersection(x1, y1, x2, y2, x3, y3, x4, y4)
                 point.append([x, y])
             except:
