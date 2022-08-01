@@ -1,5 +1,6 @@
 import cv2
 from Functions.line_detection import line_detection
+from loguru import logger
 
 
 ##################  Functions required for Border table Recognition #################
@@ -16,13 +17,20 @@ def line_intersection(x1, y1, x2, y2, x3, y3, x4, y4):
         return x1, y3
 
 
-## main extraction function ##
-# Input : Image, Decision parameter(1/0),lines for borderless (only of decision parameter is 0)
-# Output : Array of cells
 def extract_table(table_body, __line__, lines=None):
+    """
+    Main extraction function
+    Args:
+        table_body: numpy image representation
+        __line__: Decision parameter whether table is bordered or borderless. 0=borderless, 1=bordered
+        lines: lines for borderless table
+
+    Returns: Array of cells
+    """
     # Deciding variable
-    if (__line__ == 1):
+    if __line__ == 1:
         # Check if table image is  bordered or borderless
+        logger.info("Extracting bordered lines.")
         temp_lines_hor, temp_lines_ver = line_detection(table_body)
     else:
         temp_lines_hor, temp_lines_ver = lines
@@ -32,8 +40,6 @@ def extract_table(table_body, __line__, lines=None):
         return None
 
     table = table_body.copy()
-    x = 0
-    y = 0
     k = 0
     points = []
     print("[Table status] : Processing table with lines")
