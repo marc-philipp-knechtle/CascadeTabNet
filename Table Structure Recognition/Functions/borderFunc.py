@@ -110,9 +110,11 @@ def extract_table(table_body, __line__, lines=None) -> List[List]:
                 cached_cell: List[int]  # List[cell_coord_1_x, cell_coord_2_y, ..., cell_coord_4_x, cell_coord_4_y]
                 for index_k, cached_cell in enumerate(cache):
 
+                    # column y value matches cached cell point1 y value and cache cell has no top right element
                     if (column[1] == cached_cell[1]) and cache[index_k][4] is None:
                         cache[index_k][4] = column[0]
                         cache[index_k][5] = column[1]
+                        # cached cel already has bottom right element
                         if cache[index_k][4] is not None and cache[index_k][6] is not None:
                             cell_bboxes.append(cache[index_k])
                             indexes_to_remove.append(index_k)
@@ -126,9 +128,10 @@ def extract_table(table_body, __line__, lines=None) -> List[List]:
                             indexes_to_remove.append(index_k)
                             matching_coordinates_found = True
 
-                    if len(cache) != 0:
-                        if cache[index_k][4] is None or cache[index_k][6] is None:
-                            matching_coordinates_found = False
+                    # This part is not explainable for me.
+                    # if len(cache) != 0:
+                    #     if cache[index_k][4] is None or cache[index_k][6] is None:
+                    #         matching_coordinates_found = False
                 for index_k in indexes_to_remove:
                     cache.pop(index_k)
 
