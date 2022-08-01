@@ -91,8 +91,8 @@ def extract_table(table_body, __line__, lines=None) -> List[List]:
         number_of_columns = len(row)
         next_cache: List[List] = []
         # enumeration through each column in the detected table row
-        col: List[int]  # consists of List[int, int] -> each for one column position for the detected row
-        for index_column, col in enumerate(row):
+        column: List[int]  # consists of List[int, int] -> each for one column position for the detected row
+        for index_column, column in enumerate(row):
             logger.debug("Processing detected column at index: " + str(index_column) + " from a total of " + str(
                 len(row)) + " columns.")
             if index_column == number_of_columns - 1:
@@ -100,19 +100,19 @@ def extract_table(table_body, __line__, lines=None) -> List[List]:
             # it's not possible to find horizontal neighbours in the first row -> skip
             if index_row == 0:
                 next_column = row[index_column + 1]
-                cache.append([col[0], col[1], next_column[0], next_column[1], None, None, None, None])
+                cache.append([column[0], column[1], next_column[0], next_column[1], None, None, None, None])
             else:
                 next_column = row[index_column + 1]
-                next_cache.append([col[0], col[1], next_column[0], next_column[1], None, None, None, None])
+                next_cache.append([column[0], column[1], next_column[0], next_column[1], None, None, None, None])
                 matching_coordinates_found: bool = False
                 indexes_to_remove = []
                 logger.debug("Searching in cache for matching cells with size: " + str(len(cache)))
                 cached_cell: List[int]  # List[cell_coord_1_x, cell_coord_2_y, ..., cell_coord_4_x, cell_coord_4_y]
                 for index_k, cached_cell in enumerate(cache):
 
-                    if (col[1] == cached_cell[1]) and cache[index_k][4] is None:
-                        cache[index_k][4] = col[0]
-                        cache[index_k][5] = col[1]
+                    if (column[1] == cached_cell[1]) and cache[index_k][4] is None:
+                        cache[index_k][4] = column[0]
+                        cache[index_k][5] = column[1]
                         if cache[index_k][4] is not None and cache[index_k][6] is not None:
                             cell_bboxes.append(cache[index_k])
                             indexes_to_remove.append(index_k)
@@ -131,10 +131,21 @@ def extract_table(table_body, __line__, lines=None) -> List[List]:
                             matching_coordinates_found = False
                 for index_k in indexes_to_remove:
                     cache.pop(index_k)
+
                 if not matching_coordinates_found:
+                    cached_cells_removed: int = 0
+                    cached_cells_appended: int = 0
                     for cached_cell in cache:
                         if cached_cell[4] is None or cached_cell[6] is None:
                             next_cache.append(cached_cell)
+                            cached_cells_appended += 1
+                        else:
+                            cached_cells_removed += 1
+                    logger.info(
+                        "Did not found matching coordinates for cell -> "
+                        "The current cache is added to the cache for the next row.")
+                    logger.info("Removed " + str(cached_cells_removed) + " cells from the current cache.")
+                    logger.info("Added " + str(cached_cells_appended) + " cells to the next cache.")
 
         if index_row != 0:
             logger.debug("Creating cache with current constructed cache with length: " + str(len(next_cache)))
