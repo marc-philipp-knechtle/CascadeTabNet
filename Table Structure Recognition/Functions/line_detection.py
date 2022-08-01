@@ -61,26 +61,26 @@ def line_detection(image):
     # cv2.waitKey(0)
 
     # Selection of best lines from all the horizontal lines detected
-    lasty1 = -111111
+    last_y1 = -111111
     lines_x1 = []
     lines_x2 = []
     hor = []
     i = 0
     logger.debug("Selecting best horizontal lines.")
     for x1, y1, x2, y2 in horizontal_lines:
-        if lasty1 <= y1 <= lasty1 + 10:
+        if last_y1 <= y1 <= last_y1 + 10:
             lines_x1.append(x1)
             lines_x2.append(x2)
         else:
             if i != 0 and len(lines_x1) is not 0:
-                hor.append([min(lines_x1), lasty1, max(lines_x2), lasty1])
-            lasty1 = y1
+                hor.append([min(lines_x1), last_y1, max(lines_x2), last_y1])
+            last_y1 = y1
             lines_x1 = []
             lines_x2 = []
             lines_x1.append(x1)
             lines_x2.append(x2)
             i += 1
-    hor.append([min(lines_x1), lasty1, max(lines_x2), lasty1])
+    hor.append([min(lines_x1), last_y1, max(lines_x2), last_y1])
     #####################################################################
 
     # [vertical lines]
@@ -122,31 +122,31 @@ def line_detection(image):
     # cv2.waitKey(0)
 
     logger.debug("Selecting best vertical lines.")
-    lastx1 = -111111
+    last_x1 = -111111
     lines_y1 = []
     lines_y2 = []
     ver = []
     count = 0
-    lasty1 = -11111
-    lasty2 = -11111
+    last_y1 = -11111
+    last_y2 = -11111
     for x1, y1, x2, y2 in ver_lines:
-        if lastx1 <= x1 <= lastx1 + 15 and not (
-                (min(y1, y2) < min(lasty1, lasty2) - 20 or min(y1, y2) < min(lasty1, lasty2) + 20) and (
-                (max(y1, y2) < max(lasty1, lasty2) - 20 or max(y1, y2) < max(lasty1, lasty2) + 20))):
+        if last_x1 <= x1 <= last_x1 + 15 and not (
+                (min(y1, y2) < min(last_y1, last_y2) - 20 or min(y1, y2) < min(last_y1, last_y2) + 20) and (
+                (max(y1, y2) < max(last_y1, last_y2) - 20 or max(y1, y2) < max(last_y1, last_y2) + 20))):
             lines_y1.append(y1)
             lines_y2.append(y2)
         else:
             if count != 0 and len(lines_y1) is not 0:
-                ver.append([lastx1, min(lines_y2) - 5, lastx1, max(lines_y1) - 5])
-            lastx1 = x1
+                ver.append([last_x1, min(lines_y2) - 5, last_x1, max(lines_y1) - 5])
+            last_x1 = x1
             lines_y1 = []
             lines_y2 = []
             lines_y1.append(y1)
             lines_y2.append(y2)
             count += 1
-            lasty1 = -11111
-            lasty2 = -11111
-    ver.append([lastx1, min(lines_y2) - 5, lastx1, max(lines_y1) - 5])
+            last_y1 = -11111
+            last_y2 = -11111
+    ver.append([last_x1, min(lines_y2) - 5, last_x1, max(lines_y1) - 5])
 
     # Visualization of Lines After Post Processing
     # for x1, y1, x2, y2 in ver:
