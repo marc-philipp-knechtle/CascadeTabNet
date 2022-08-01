@@ -26,7 +26,7 @@ def line_intersection(x1, y1, x2, y2, x3, y3, x4, y4) -> Tuple[int, int]:
         return x1, y3
 
 
-def extract_table(table_body, __line__, lines=None) -> List[List[int, int, int, int, int, int, int, int]]:
+def extract_table(table_body, __line__, lines=None) -> List[List]:
     """
     Main extraction function
     Args:
@@ -74,7 +74,7 @@ def extract_table(table_body, __line__, lines=None) -> List[List[int, int, int, 
     # cv2.imshow("intersection",table)
     # cv2.waitKey(0)
 
-    cell_bboxes: List[List[int, int, int, int, int, int, int, int]] = []
+    cell_bboxes: List[List] = []
     # each list elements looks like this: [column_x, column_y, next_column_x, next_column_y, ?, ?, ?, ?]
     last_cache: List[List] = []
     # creating bounding boxes of cells from the points detected
