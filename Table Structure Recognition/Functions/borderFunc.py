@@ -36,6 +36,10 @@ def extract_table(table_body, __line__, lines=None) -> List[List]:
 
     Returns: Array of cells with structure:
     List[List[cell_coord_1_x, cell_coord2_y, ..., cell_coord_4_x, cell_coord_4_y]]
+    Represents the following Cell-Coordinate Structure:
+    [top-left, bottom-left, top-right, bottom-right]
+    Returns the Cells Bounding boxes in a cell-bounding box manner.
+    The bounding box is around the cell, NOT the cell content!
     """
     # Deciding variable
     if __line__ == 1:
@@ -90,7 +94,7 @@ def extract_table(table_body, __line__, lines=None) -> List[List]:
         col: List[int]  # consists of List[int, int] -> each for one column position for the detected row
         for index_column, col in enumerate(row):
             logger.debug("Processing detected column at index: " + str(index_column) + " from a total of " + str(
-                len(col)) + " columns.")
+                len(row)) + " columns.")
             if index_column == number_of_columns - 1:
                 break
             # it's not possible to find horizontal neighbours in the first row -> skip
