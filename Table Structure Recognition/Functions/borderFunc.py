@@ -66,9 +66,9 @@ def extract_table(table_body, __line__, lines=None):
 
     # boxno = -1
     box = []
-    flag = 1
     last_cache = []
     # creating bounding boxes of cells from the points detected
+    logger.debug("Create cell bounding boxes with the detected points.")
     # This is still under work and might fail on some images
     for i, row in enumerate(points):
         limitj = len(row)
