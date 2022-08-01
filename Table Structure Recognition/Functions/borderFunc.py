@@ -30,8 +30,9 @@ def extract_table(table_body, __line__, lines=None):
     # Deciding variable
     if __line__ == 1:
         # Check if table image is  bordered or borderless
-        logger.info("Extracting bordered lines.")
+        logger.debug("Extracting bordered lines.")
         temp_lines_hor, temp_lines_ver = line_detection(table_body)
+        logger.debug("Extracted bordered table lines.")
     else:
         temp_lines_hor, temp_lines_ver = lines
 
