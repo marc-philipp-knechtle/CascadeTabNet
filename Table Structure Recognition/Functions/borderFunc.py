@@ -107,10 +107,8 @@ def extract_table(table_body, __line__, lines=None):
                     if len(last_cache) != 0:
                         if last_cache[k][4] == 9999 or last_cache[k][6] == 9999:
                             flag = 0
-                # print(index)
                 for k in index:
                     last_cache.pop(k)
-                # tranfsering
                 if flag == 0:
                     for last in last_cache:
                         if last[4] == 9999 or last[6] == 9999:
