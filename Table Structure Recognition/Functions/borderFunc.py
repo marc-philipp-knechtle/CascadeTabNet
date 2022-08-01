@@ -89,7 +89,7 @@ def extract_table(table_body, __line__, lines=None) -> List[List]:
         logger.debug(
             "Processing detected row at index: " + str(index_row) + " from a total of " + str(len(points)) + " rows.")
         number_of_columns = len(row)
-        current_vala = []
+        next_cache: List[List] = []
         # enumeration through each column in the detected table row
         col: List[int]  # consists of List[int, int] -> each for one column position for the detected row
         for index_column, col in enumerate(row):
@@ -103,7 +103,7 @@ def extract_table(table_body, __line__, lines=None) -> List[List]:
                 cache.append([col[0], col[1], next_column[0], next_column[1], None, None, None, None])
             else:
                 next_column = row[index_column + 1]
-                current_vala.append([col[0], col[1], next_column[0], next_column[1], None, None, None, None])
+                next_cache.append([col[0], col[1], next_column[0], next_column[1], None, None, None, None])
                 matching_coordinates_found: bool = False
                 indexes_to_remove = []
                 logger.debug("Searching in cache for matching cells with size: " + str(len(cache)))
@@ -134,10 +134,11 @@ def extract_table(table_body, __line__, lines=None) -> List[List]:
                 if not matching_coordinates_found:
                     for cached_cell in cache:
                         if cached_cell[4] is None or cached_cell[6] is None:
-                            current_vala.append(cached_cell)
+                            next_cache.append(cached_cell)
 
         if index_row != 0:
-            cache = current_vala
+            logger.debug("Creating cache with current constructed cache with length: " + str(len(next_cache)))
+            cache = next_cache
 
     # Visualizing the cells
     # table = table_body.copy()
