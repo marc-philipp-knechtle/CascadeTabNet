@@ -83,7 +83,7 @@ def extract_table(table_body, __line__, lines=None) -> List[List]:
     # This is still under work and might fail on some images
     for index_row, row in enumerate(points):
         logger.debug(
-            "Processing detected row at index: " + str(index_row) + " from a total of " + str(len(points)) + "rows.")
+            "Processing detected row at index: " + str(index_row) + " from a total of " + str(len(points)) + " rows.")
         number_of_columns = len(row)
         current_vala = []
         # enumeration through each row in the detected table
