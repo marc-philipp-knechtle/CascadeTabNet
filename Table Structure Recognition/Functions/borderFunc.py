@@ -128,7 +128,9 @@ def extract_table(table_body, __line__, lines=None) -> List[List]:
                             indexes_to_remove.append(index_k)
                             matching_coordinates_found = True
 
-                    # This part is not explainable for me.
+                    # This part is not explainable for me. Why should the matching_coordinates_found flag be set to
+                    # False if the last cached_cell did not match any cell?
+                    # But I left this inside the file, because this is a big change compared to the original paper.
                     # if len(cache) != 0:
                     #     if cache[index_k][4] is None or cache[index_k][6] is None:
                     #         matching_coordinates_found = False
