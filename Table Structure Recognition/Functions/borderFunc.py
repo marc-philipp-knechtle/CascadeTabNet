@@ -1,7 +1,7 @@
 import cv2
 from Functions.line_detection import line_detection
 from loguru import logger
-from typing import Tuple, List
+from typing import Tuple, List, Optional
 
 
 def line_intersection(x1, y1, x2, y2, x3, y3, x4, y4) -> Tuple[int, int]:
@@ -188,7 +188,12 @@ def span(box, X, Y):
     return end_col, end_row, start_col, start_row
 
 
-def extract_text(img):
+def extract_text_bounding_box(img) -> Optional[List[int]]:
+    """
+    Args:
+        img: visual representation of only the cell
+    Returns: the text coordinates inside the cell [x, y, width, height]
+    """
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     _, thresh1 = cv2.threshold(gray, 0, 255, cv2.THRESH_OTSU | cv2.THRESH_BINARY_INV)
     # cv2_imshow(thresh1)
@@ -196,27 +201,27 @@ def extract_text(img):
     dilation = cv2.dilate(thresh1, rect_kernel, iterations=2)
     contours, _ = cv2.findContours(dilation, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
     im2 = img.copy()
-    mx, my, mw, mh = float('Inf'), float('Inf'), -1, -1
+    max_x, max_y, max_width, max_height = float('Inf'), float('Inf'), -1, -1
     for cnt in contours:
         x, y, w, h = cv2.boundingRect(cnt)
         # print(im2.shape)
-        if x < 2 or y < 2 or (x + w >= im2.shape[1] - 1 and y + h >= im2.shape[0] - 1) or w >= im2.shape[1] - 1 or h >= \
-                im2.shape[0] - 1:
+        if x < 2 or y < 2 or (x + w >= im2.shape[1] - 1 and y + h >= im2.shape[0] - 1) or w >= im2.shape[1] - 1 \
+                or h >= im2.shape[0] - 1:
             continue
-        if x < mx:
-            mx = x
-        if y < my:
-            my = y
-        if x + w > mw:
-            mw = x + w
-        if y + h > mh:
-            mh = y + h
-        # print(x, y, w, h)
+        if x < max_x:
+            max_x = x
+        if y < max_y:
+            max_y = y
+        if x + w > max_width:
+            max_width = x + w
+        if y + h > max_height:
+            max_height = y + h
 
-    if mx != float('Inf') and my != float('Inf'):
+    if max_x != float('Inf') and max_y != float('Inf'):
         # Drawing a rectangle on copied image 
-        # rect = cv2.rectangle(im2, (mx+1, my), (mw-2, mh-2), (0, 255, 0), 1)
-        # cv2_imshow(im2)
-        return mx, my, mw, mh
+        # cv2.rectangle(im2, (max_x+1, max_y), (max_width-2, max_height-2), (0, 255, 0), 1)
+        # cv2.imshow("detected cells", im2)
+        # cv2.waitKey(0)
+        return [max_x, max_y, max_width, max_height]
     else:
         return None
