@@ -24,7 +24,7 @@ from docrecjson.elements import Document, PolygonRegion, Cell
 # remove the default loguru logger
 logger.remove()
 # add new custom loggers
-logger.add(sys.stdout, level='DEBUG')
+logger.add(sys.stdout, level='INFO')
 logger.add("info.log", level='INFO', rotation="10 MB")
 logger.add("failures.log", level='ERROR', rotation="10 MB")
 
@@ -72,7 +72,7 @@ def process_image(image_path: str, config_fname: str, checkpoint_file: str) -> D
         _handle_no_table_detected(document=doc, detected_cells=result_cells_detection)
         logger.warning("Executing table structure extraction without detected table.")
 
-    logger.info("Created document from shared_file_format: \n{}", str(doc.to_json()))
+    logger.debug("Created document from shared_file_format: \n{}", str(doc.to_json()))
     logger.info("Finished shared_file_format creation on: \n{}", image_path)
     logger.info("Waiting for new files...")
 
