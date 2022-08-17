@@ -2,6 +2,7 @@
 import argparse
 import json
 import os
+import shutil
 import sys
 import time
 from typing import List, Tuple
@@ -307,15 +308,18 @@ def handle_duplicate_files(filepath: str, new_folder_location: str):
     while os.path.isfile(os.path.join(new_folder_location, filename + " (" + str(counter) + ")" + file_extension)):
         counter += 1
     if counter == 1:
-        os.rename(filepath, os.path.join(new_folder_location, filename + file_extension))
+        shutil.copy(filepath, os.path.join(new_folder_location, filename + file_extension))
+        os.remove(filepath)
     else:
-        os.rename(filepath, os.path.join(new_folder_location, filename + " (" + str(counter) + ")" + file_extension))
+        shutil.copy(filepath, os.path.join(new_folder_location, filename + " (" + str(counter) + ")" + file_extension))
+        os.remove(filepath)
 
 
 def move_to_folder(filepath: str, new_folder_location: str):
-    # todo maybe remove os.path.join... because filepath is already path
     if not os.path.isfile(filepath):
-        os.rename(filepath, new_folder_location)
+        # used shututil because of different file systems in the docker container
+        shutil.copy(filepath, new_folder_location)
+        os.remove(filepath)
     else:
         handle_duplicate_files(filepath, new_folder_location)
 
