@@ -1,3 +1,5 @@
+*.pyc
+
 Table Structure Recognition/failures.log
 
 # These are some examples of commonly ignored file patterns.
