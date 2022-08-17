@@ -369,6 +369,7 @@ def handle_borderless_table(table: list, image, resolved_cells: list, document: 
 
     table = document.add_table([(table[0], table[1]), (table[0], table[3]), (table[2], table[3]), (table[2], table[1])],
                                cells, source='prediction')
-    document.add_content_metadata({"bordered": "False", "borderless": "True"}, group_ref=table, parent_ref=table.oid)
+    casctabnet_metadata: dict = {"CascadeTabNet Border": {"bordered": "False", "borderless": "True"}}
+    document.add_content_metadata(casctabnet_metadata, group_ref=table, parent_ref=table.oid)
 
     return document

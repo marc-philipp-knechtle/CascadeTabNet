@@ -62,6 +62,14 @@ def process_image(image_path: str, config_fname: str, checkpoint_file: str) -> D
     elif len(borderless_tables) != 0:
         _handle_borderless_tables(document=doc, image_path=image_path, borderless_tables=borderless_tables,
                                   detected_cells=result_cells_detection)
+    elif len(bordered_tables) == 0 and len(borderless_tables) == 0:
+        # todo this handling is only advised if it can be ensured that there is definitely a table in the file
+        # ! and only a table, no text etc.
+        # This shall be either removed for other use cases or replaced by a previous table detection step
+        # e.g. another previous model detected a table on this file, but cascadetabnet did not
+        # -> handle this file as there was a table detected.
+        _handle_no_table_detected(document=doc, detected_cells=result_cells_detection)
+        logger.warning("Executing table structure extraction without detected table.")
 
     logger.info("Created document from shared_file_format: \n{}", str(doc.to_json()))
     logger.info("Finished shared_file_format creation on: \n{}", image_path)
@@ -81,6 +89,26 @@ def _handle_borderless_tables(document: Document, image_path: str, borderless_ta
                               detected_cells: list) -> Document:
     for table in borderless_tables:
         document = handle_borderless_table(table, cv2.imread(image_path), detected_cells, document)
+
+    return document
+
+
+def _handle_no_table_detected(document: Document, detected_cells: list):
+    result_cells_bounding_boxes: List[List[Point]] = create_bounding_boxes(detected_cells)
+
+    cells: List[Cell] = []
+    for cell in result_cells_bounding_boxes:
+        # the cell array has a weird format which produces conflicts with other applications in downstream tasks
+        # they produce a cross-like shape for detection
+        # this is the reason the cell list is reordered properly
+        cell_ordered: list = [cell[0], cell[2], cell[1], cell[3]]
+        cell: Cell = document.add_cell(cell_ordered, source='prediction')
+        cells.append(cell)
+
+    if len(cells) != 0:
+        table = document.add_table(get_table_coordinates_from_cells(cells), cells, source="prediction")
+        casctabnet_metadata: dict = {"CascadeTabNet Border": {"bordered": "False", "borderless": "False"}}
+        document.add_content_metadata(casctabnet_metadata, group_ref=table, parent_ref=table.oid)
 
     return document
 

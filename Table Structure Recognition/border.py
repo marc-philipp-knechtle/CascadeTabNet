@@ -120,7 +120,8 @@ def handle_bordered_table(table: list, image, document: Document) -> Document:
 
     table = document.add_table([(table[0], table[1]), (table[0], table[2]), (table[2], table[3]), (table[2], table[1])],
                                cells)
-    document.add_content_metadata({"bordered": "True", "borderless": "False"}, group_ref=table, parent_ref=table.oid)
+    casctabnet_metadata: dict = {"CascadeTabNet Border": {"bordered": "True", "borderless": "False"}}
+    document.add_content_metadata(casctabnet_metadata, group_ref=table, parent_ref=table.oid)
     # to visualize the detected text areas
     # cv2.imshow("detected cells",imag)
     # cv2.waitKey(0)
