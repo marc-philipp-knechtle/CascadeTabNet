@@ -367,7 +367,8 @@ def handle_borderless_table(table: list, image, resolved_cells: list, document: 
                                             (box[2], box[3]),
                                             (box[2], box[1])], start_row, end_row, start_col, end_col))
 
-    document.add_table([(table[0], table[1]), (table[0], table[3]), (table[2], table[3]), (table[2], table[1])], cells,
-                       source='prediction')
+    table = document.add_table([(table[0], table[1]), (table[0], table[3]), (table[2], table[3]), (table[2], table[1])],
+                               cells, source='prediction')
+    document.add_content_metadata({"bordered": "False", "borderless": "True"}, group_ref=table, parent_ref=table.oid)
 
     return document

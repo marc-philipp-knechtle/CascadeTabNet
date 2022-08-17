@@ -75,7 +75,6 @@ def handle_bordered_table(table: list, image, document: Document) -> Document:
         document: shared-file-document to add the table to.
 
     Returns: document with added Table
-
     """
     image_np = image  # [table[1]-10:table[3]+10,table[0]-10:table[2]+10]
     imag = image.copy()
@@ -119,8 +118,9 @@ def handle_bordered_table(table: list, image, document: Document) -> Document:
                                             (cell_box[2] + box[0], cell_box[1] + box[1])], start_row, end_row,
                                            start_col, end_col, source='prediction'))
 
-    document.add_table([(table[0], table[1]), (table[0], table[2]), (table[2], table[3]), (table[2], table[1])],
-                       cells)
+    table = document.add_table([(table[0], table[1]), (table[0], table[2]), (table[2], table[3]), (table[2], table[1])],
+                               cells)
+    document.add_content_metadata({"bordered": "True", "borderless": "False"}, group_ref=table, parent_ref=table.oid)
     # to visualize the detected text areas
     # cv2.imshow("detected cells",imag)
     # cv2.waitKey(0)
