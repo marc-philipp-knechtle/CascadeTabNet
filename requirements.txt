@@ -4,3 +4,5 @@
 loguru
 Pillow <= 6.2.2
 pytesseract <= 0.2
+shapely
+
