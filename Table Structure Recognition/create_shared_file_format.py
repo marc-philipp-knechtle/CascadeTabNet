@@ -63,22 +63,6 @@ def process_image(image_path: str, config_fname: str, checkpoint_file: str) -> D
         _handle_borderless_tables(document=doc, image_path=image_path, borderless_tables=borderless_tables,
                                   detected_cells=result_cells_detection)
 
-    # this is the previous handling before _handle_bordered_tables and _handle_borderless_tables
-
-    # result_cells_bounding_boxes: List[List[Point]] = create_bounding_boxes(result_cells_detection)
-    #
-    # cells: List[Cell] = []
-    # for cell in result_cells_bounding_boxes:
-    #     # the cell array has a weird format which produces conflicts with other applications in downstream tasks
-    #     # they produce a cross-like shape for detection
-    #     # this is the reason the cell list is reordered properly
-    #     cell_ordered: list = [cell[0], cell[2], cell[1], cell[3]]
-    #     cell: Cell = doc.add_cell(cell_ordered, source='prediction')
-    #     cells.append(cell)
-    #
-    # if len(cells) != 0:
-    #     doc.add_table(get_table_coordinates_from_cells(cells), cells, source="prediction")
-
     logger.info("Created document from shared_file_format: \n{}", str(doc.to_json()))
     logger.info("Finished shared_file_format creation on: \n{}", image_path)
     logger.info("Waiting for new files...")
