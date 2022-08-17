@@ -2,6 +2,8 @@ import cv2
 import lxml.etree as etree
 from typing import List
 
+from pytesseract import pytesseract
+
 from Functions.borderFunc import extract_table, extract_text, span
 from docrecjson.elements import Document, Cell
 
@@ -112,11 +114,16 @@ def handle_bordered_table(table: list, image, document: Document) -> Document:
                           (255, 0, 0), 2)
             end_col, end_row, start_col, start_row = span(box, x, y)
 
+            # todo add pytesseract preprocessing?
+            # https://github.com/NanoNets/ocr-with-tesseract/blob/master/tesseract-tutorial.ipynb
+            cv2_roi = image[box[1]:box[3], box[0]: box[2]]
+            text: str = pytesseract.image_to_string(cv2_roi)
+
             cells.append(document.add_cell([(cell_box[0] + box[0], cell_box[1] + box[1]),
                                             (cell_box[0] + box[0], cell_box[3] + box[1]),
                                             (cell_box[2] + box[0], cell_box[3] + box[1]),
                                             (cell_box[2] + box[0], cell_box[1] + box[1])], start_row, end_row,
-                                           start_col, end_col, source='prediction'))
+                                           start_col, end_col, source='prediction', text=text))
 
     table = document.add_table([(table[0], table[1]), (table[0], table[2]), (table[2], table[3]), (table[2], table[1])],
                                cells)

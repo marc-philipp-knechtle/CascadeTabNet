@@ -2,4 +2,5 @@
 # The requirements here may not be sufficient to run the detection proposed for this Model.
 
 loguru
-Pillow
+Pillow <= 6.2.2
+pytesseract <= 0.2

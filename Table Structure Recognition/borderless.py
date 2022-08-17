@@ -2,8 +2,9 @@ import cv2
 import numpy as np
 from typing import List
 
+import pytesseract
+
 from Functions.borderFunc import extract_table
-from lxml import etree
 
 from docrecjson.elements import Document, Cell
 
@@ -362,10 +363,17 @@ def handle_borderless_table(table: list, image, resolved_cells: list, document: 
     for final in text_chunks:
         for box in final:
             end_col, end_row, start_col, start_row = colend(box[2]), rowend(box[3]), colstart(box[0]), rowstart(box[1])
+
+            # todo add pyteseract preprocessing?
+            # https://github.com/NanoNets/ocr-with-tesseract/blob/master/tesseract-tutorial.ipynb
+            cv2_roi = image[box[1]:box[3], box[0]: box[2]]
+            text: str = pytesseract.image_to_string(cv2_roi)
+
             cells.append(document.add_cell([(box[0], box[1]),
                                             (box[0], box[3]),
                                             (box[2], box[3]),
-                                            (box[2], box[1])], start_row, end_row, start_col, end_col))
+                                            (box[2], box[1])], start_row, end_row, start_col, end_col, text=text,
+                                           source='prediction'))
 
     table = document.add_table([(table[0], table[1]), (table[0], table[3]), (table[2], table[3]), (table[2], table[1])],
                                cells, source='prediction')
