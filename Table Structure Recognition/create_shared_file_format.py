@@ -308,18 +308,18 @@ def handle_duplicate_files(filepath: str, new_folder_location: str):
     while os.path.isfile(os.path.join(new_folder_location, filename + " (" + str(counter) + ")" + file_extension)):
         counter += 1
     if counter == 1:
-        shutil.copy(filepath, os.path.join(new_folder_location, filename + file_extension))
-        os.remove(filepath)
+        shutil.move(filepath, os.path.join(new_folder_location, filename + file_extension))
+        # os.remove(filepath)
     else:
-        shutil.copy(filepath, os.path.join(new_folder_location, filename + " (" + str(counter) + ")" + file_extension))
-        os.remove(filepath)
+        shutil.move(filepath, os.path.join(new_folder_location, filename + " (" + str(counter) + ")" + file_extension))
+        # os.remove(filepath)
 
 
 def move_to_folder(filepath: str, new_folder_location: str):
     if not os.path.isfile(filepath):
         # used shututil because of different file systems in the docker container
-        shutil.copy(filepath, new_folder_location)
-        os.remove(filepath)
+        shutil.move(filepath, new_folder_location)
+        # os.remove(filepath)
     else:
         handle_duplicate_files(filepath, new_folder_location)
 
