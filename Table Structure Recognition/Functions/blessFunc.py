@@ -148,7 +148,6 @@ def borderless(table, image, res_cells):
     row.append(table[3])
     maxr = 0
     for r2 in final_rows:
-        print(r2)
         if len(r2) > maxr:
             maxr = len(r2)
 
