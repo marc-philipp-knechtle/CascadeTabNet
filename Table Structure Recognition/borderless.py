@@ -37,6 +37,15 @@ def extract_text_bless(img):
 
 
 def handle_borderless_table(table: list, image, resolved_cells: list, document: Document) -> Document:
+    """
+    Args:
+        table: coordinates of the table [top_left_x, top_left_y, bottom_right_x, bottom_right_y]
+        image:
+        resolved_cells: all found cells with bbox coordinates equal to table
+        document:
+
+    Returns: document with annotated table
+    """
     cells = []
     x_lines = []
     y_lines = []
@@ -200,24 +209,24 @@ def handle_borderless_table(table: list, image, resolved_cells: list, document: 
     #   cv2.line(im2,(r,table[1]),(r,table[3]),(0,255,0),1)
     # for c in col:
     #   cv2.line(im2,(c,table[1]),(c,table[3]),(0,255,0),1)
-    final = extract_table(image[table[1]:table[3], table[0]:table[2]], 0, (y_lines, x_lines))
+    text_chunk = extract_table(image[table[1]:table[3], table[0]:table[2]], 0, (y_lines, x_lines))
 
-    cellBoxes = []
+    cell_boxes = []
     img4 = image.copy()
-    for box in final:
-        cellBox = extract_text_bless(image[box[1]:box[3], box[0]:box[4]])
+    for cell_bbox in text_chunk:
+        cellBox = extract_text_bless(image[cell_bbox[1]:cell_bbox[3], cell_bbox[0]:cell_bbox[4]])
         for cell in cellBox:
-            cellBoxes.append([box[0] + cell[0], box[1] + cell[1], cell[2], cell[3]])
-            cv2.rectangle(img4, (box[0] + cell[0], box[1] + cell[1]),
-                          (box[0] + cell[0] + cell[2], box[1] + cell[1] + cell[3]), (255, 0, 0), 2)
+            cell_boxes.append([cell_bbox[0] + cell[0], cell_bbox[1] + cell[1], cell[2], cell[3]])
+            cv2.rectangle(img4, (cell_bbox[0] + cell[0], cell_bbox[1] + cell[1]),
+                          (cell_bbox[0] + cell[0] + cell[2], cell_bbox[1] + cell[1] + cell[3]), (255, 0, 0), 2)
     # cv2_imshow(img4)
 
     the_last_y = -1
-    cellBoxes = sorted(cellBoxes, key=lambda x: x[1])
+    cell_boxes = sorted(cell_boxes, key=lambda x: x[1])
     cellBoxes2BeMerged = []
     cellBoxes2BeMerged.append([])
     row_count = 0
-    for cell in cellBoxes:
+    for cell in cell_boxes:
         if (the_last_y == -1):
             the_last_y = cell[1]
             cellBoxes2BeMerged[row_count].append(cell)
@@ -259,19 +268,19 @@ def handle_borderless_table(table: list, image, resolved_cells: list, document: 
     for bx in merged_boxes:
         cv2.rectangle(im3, (bx[0], bx[1]), (bx[2], bx[3]), (255, 0, 0), 2)
     # cv2_imshow(im3)
-    text_chunks = []
-    text_chunks.append([])
+    text_chunks = [[]]
     rcnt = 0
     ycnt = -1
 
-    final = sorted(final, key=lambda x: x[1])
-    for box in final:
+    text_chunk = sorted(text_chunk, key=lambda x: x[1])
+    for cell_bbox in text_chunk:
         if ycnt == -1:
-            ycnt = box[1]
+            ycnt = cell_bbox[1]
         tcurcell = []
         mcurcell = []
         for mbox in merged_boxes:
-            if mbox[0] >= box[0] and mbox[1] >= box[1] and mbox[2] <= box[4] and mbox[3] <= box[3]:
+            if mbox[0] >= cell_bbox[0] and mbox[1] >= cell_bbox[1] and mbox[2] <= cell_bbox[4] and mbox[3] <= cell_bbox[
+                3]:
                 if len(tcurcell) == 0:
                     tcurcell = mbox
                 else:
@@ -286,15 +295,16 @@ def handle_borderless_table(table: list, image, resolved_cells: list, document: 
 
         for i, frow in enumerate(final_rows):
             for j, fbox in enumerate(frow):
-                if fbox[0] >= box[0] and fbox[0] <= box[4] and fbox[1] >= box[1] and fbox[1] <= box[3]:
+                if fbox[0] >= cell_bbox[0] and fbox[0] <= cell_bbox[4] and fbox[1] >= cell_bbox[1] and fbox[1] <= \
+                        cell_bbox[3]:
                     mcurcell = fbox
                     final_rows[i].pop(j)
                     break
 
-        if abs(ycnt - box[1]) > 10:
+        if abs(ycnt - cell_bbox[1]) > 10:
             rcnt += 1
             text_chunks.append([])
-            ycnt = box[1]
+            ycnt = cell_bbox[1]
 
         if len(tcurcell) == 0:
             if len(mcurcell) == 0:
@@ -323,14 +333,20 @@ def handle_borderless_table(table: list, image, resolved_cells: list, document: 
     # cv2.imshow("text chunks", im2)
     # cv2.waitKey(0)
 
-    def rowstart(val):
-        r = 0
-        while r < len(_row_) and val > _row_[r]:
-            r += 1
-        if r - 1 == -1:
-            return r
+    def rowstart(top_left_y: int):
+        """
+        Args:
+            top_left_y: top left y coordinate
+
+        Returns:
+        """
+        row_counter = 0
+        while row_counter < len(_row_) and top_left_y > _row_[row_counter]:
+            row_counter += 1
+        if row_counter - 1 == -1:
+            return row_counter
         else:
-            return r - 1
+            return row_counter - 1
 
     def rowend(val):
         r = 0
@@ -360,19 +376,23 @@ def handle_borderless_table(table: list, image, resolved_cells: list, document: 
             return r - 1
 
     cells: List[Cell] = []
-    for final in text_chunks:
-        for box in final:
-            end_col, end_row, start_col, start_row = colend(box[2]), rowend(box[3]), colstart(box[0]), rowstart(box[1])
+    text_chunk: List[List]  # describes a list of related text cells e.g. one row
+    for text_chunk in text_chunks:
+        cell_bbox: List[int]  # [top_left_x, top_left_y, bottom_right_x, bottom_right_y, ???]
+        for cell_bbox in text_chunk:
+            end_col, end_row, start_col, start_row = colend(cell_bbox[2]), rowend(cell_bbox[3]), colstart(
+                cell_bbox[0]), rowstart(cell_bbox[1])
 
             # todo add pyteseract preprocessing?
             # https://github.com/NanoNets/ocr-with-tesseract/blob/master/tesseract-tutorial.ipynb
-            cv2_roi = image[box[1]:box[3], box[0]: box[2]]
+            cv2_roi = image[cell_bbox[1]:cell_bbox[3], cell_bbox[0]: cell_bbox[2]]
             text: str = pytesseract.image_to_string(cv2_roi)
 
-            cells.append(document.add_cell([(box[0], box[1]),
-                                            (box[0], box[3]),
-                                            (box[2], box[3]),
-                                            (box[2], box[1])], start_row, end_row, start_col, end_col, text=text,
+            cells.append(document.add_cell([(cell_bbox[0], cell_bbox[1]),
+                                            (cell_bbox[0], cell_bbox[3]),
+                                            (cell_bbox[2], cell_bbox[3]),
+                                            (cell_bbox[2], cell_bbox[1])], start_row, end_row, start_col, end_col,
+                                           text=text,
                                            source='prediction'))
 
     table = document.add_table([(table[0], table[1]), (table[0], table[3]), (table[2], table[3]), (table[2], table[1])],
