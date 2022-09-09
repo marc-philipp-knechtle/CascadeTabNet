@@ -6,17 +6,26 @@ Pillow <= 6.2.2
 pytesseract <= 0.2.2
 shapely~=1.8.3
 
+Cython==0.27.3
+ipython==7.31.0
+traitlets==5.1.1
+click==7.1.2
+pycocotools==2.0
 
-torch~=1.4.0
-mmcv~=0.4.3
+
+torch==1.4.0
+torchvision==0.5.0
+mmcv==0.4.3
 numpy~=1.22.0
 opencv-python~=4.5.5.64
-mmdet~=1.2.0
 lxml~=4.7.1
 pdf2image~=1.16.0
 typing~=3.7.4.3
-docrecjson~=0.1
 pymongo~=4.0.1
 scipy~=1.7.3
 matplotlib~=3.5.1
 streamlit~=1.4.0
+
+
+# docrecjson~=0.1
+-e shared-file-format/python
