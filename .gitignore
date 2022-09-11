@@ -1,4 +1,7 @@
 *.pyc
+.venv*
+*.pth
+mmdetection/
 
 Table Structure Recognition/failures.log
 
