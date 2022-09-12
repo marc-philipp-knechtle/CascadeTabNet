@@ -20,7 +20,7 @@ mmdet==2.3.0
 torch==1.5.1+cpu
 torchvision==0.6.1+cpu
 -f https://download.openmmlab.com/mmcv/dist/index.html
-mmcv-full==1.0.5+torch1.5.0+cpu
+# mmcv-full==1.0.5+torch1.5.0+cpu
 opencv-python~=4.5.5.64
 lxml~=4.7.1
 pdf2image~=1.16.0
