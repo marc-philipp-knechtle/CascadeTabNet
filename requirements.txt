@@ -6,7 +6,7 @@ Pillow <= 6.2.2
 pytesseract <= 0.2.2
 shapely~=1.8.3
 
-numpy
+numpy==1.23.3
 
 Cython
 ipython==7.31.0
@@ -19,8 +19,8 @@ mmdet==2.3.0
 -f https://download.pytorch.org/whl/torch_stable.html
 torch==1.5.1+cpu
 torchvision==0.6.1+cpu
--f https://openmmlab.oss-accelerate.aliyuncs.com/mmcv/dist/index.html
-mmcv-full==1.0.5 #+torch1.5.0+cpu
+-f https://download.openmmlab.com/mmcv/dist/index.html
+mmcv-full==1.0.5+torch1.5.0+cpu
 opencv-python~=4.5.5.64
 lxml~=4.7.1
 pdf2image~=1.16.0
