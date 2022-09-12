@@ -40,7 +40,7 @@ def process_image(image_path: str, config_fname: str, checkpoint_file: str) -> D
         detection results directly.
     -> this version should return a generator
     """
-    model = init_detector(config_fname, checkpoint_file)
+    model = init_detector(config_fname, checkpoint_file, device='cpu')
     result = inference_detector(model, image_path)
 
     # bordered_tables and borderless_tables contains the coordinates of each detected table in array form

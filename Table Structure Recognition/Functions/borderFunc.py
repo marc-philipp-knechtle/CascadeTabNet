@@ -50,9 +50,10 @@ def extract_table(table_body, __line__, lines=None) -> List[List]:
     else:
         temp_lines_hor, temp_lines_ver = lines
 
-    if len(temp_lines_hor) == 0 or len(temp_lines_ver) == 0:
-        logger.debug("Either Horizontal Or Vertical Lines Not Detected")
-        raise RuntimeError("Cant detect bordered table without lines.")
+    if temp_lines_hor is None or temp_lines_ver is None or len(temp_lines_hor) == 0 or len(temp_lines_ver) == 0:
+        logger.error("Either Horizontal Or Vertical Lines Not Detected")
+        logger.error("Returning empty cell representation.")
+        return []
 
     # List of all Rows, each row with List of Columns, each Column with List of points
     points: List[List[List]] = []
