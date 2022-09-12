@@ -26,7 +26,7 @@ lxml~=4.7.1
 pdf2image~=1.16.0
 typing~=3.7.4.3
 pymongo~=4.0.1
-scipy~=1.7.3
+scipy
 matplotlib~=3.5.1
 streamlit~=1.4.0
 
